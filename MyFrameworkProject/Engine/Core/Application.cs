@@ -1,8 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MyFrameworkProject.Engine;
 using System;
+
+using MyFrameworkProject.Engine.Input;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -12,6 +13,7 @@ namespace MyFrameworkProject.Engine.Core
         private GameLoop _gameLoop;
 
         public static Application Instance { get; private set; }
+        public InputManager Input { get; private set; }
 
         public Application()
         {
@@ -38,6 +40,8 @@ namespace MyFrameworkProject.Engine.Core
         {
             Logger.Info("Application initialized");
 
+            Input = new InputManager();
+
             Time.Initialize();
             _gameLoop = new GameLoop();
 
@@ -46,12 +50,19 @@ namespace MyFrameworkProject.Engine.Core
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            Input.Update();
+            Time.Update(gameTime);
+
+            if (Input.IsPressed(InputAction.Left))
+                Logger.Info("Left action triggered");
+
+            if (Input.IsPressed(InputAction.Right))
+                Logger.Info("Right action triggered");
+
+            if (Input.IsDown(InputAction.Confirm))
                 Exit();
 
-            Time.Update(gameTime);
             _gameLoop.Update();
-
             base.Update(gameTime);
         }
 
