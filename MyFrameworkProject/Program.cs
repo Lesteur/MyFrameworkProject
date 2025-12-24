@@ -1,5 +1,4 @@
-﻿// using var game = new MyFrameworkProject.Game1();
-// game.Run();
+﻿using MyFrameworkProject.Engine.Core;
 
 namespace MyFrameworkProject
 {

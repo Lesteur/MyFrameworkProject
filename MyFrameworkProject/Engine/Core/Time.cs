@@ -1,0 +1,22 @@
+﻿using Microsoft.Xna.Framework;
+
+namespace MyFrameworkProject.Engine.Core
+{
+    public static class Time
+    {
+        public static float DeltaTime { get; private set; }
+        public static float TotalTime { get; private set; }
+
+        internal static void Initialize()
+        {
+            DeltaTime = 0f;
+            TotalTime = 0f;
+        }
+
+        internal static void Update(GameTime gameTime)
+        {
+            DeltaTime = (float) gameTime.ElapsedGameTime.TotalSeconds;
+            TotalTime = (float) gameTime.TotalGameTime.TotalSeconds;
+        }
+    }
+}
