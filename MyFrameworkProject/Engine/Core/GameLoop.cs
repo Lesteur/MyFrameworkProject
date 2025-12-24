@@ -1,26 +1,44 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
+﻿using MyFrameworkProject.Engine.Graphics;
+using System.Collections.Generic;
 
 namespace MyFrameworkProject.Engine.Core
 {
     public class GameLoop
     {
+        private readonly List<Entity> _entities = [];
+
         public GameLoop()
         {
             Logger.Info("GameLoop created");
         }
 
-        public void Update()
+        public void AddEntity(Entity entity)
         {
-            // Global update logic
-            // Later: Scene management, input handling, etc.
+            _entities.Add(entity);
         }
 
-        public void Draw(GraphicsDevice graphicsDevice)
+        public void Update()
         {
-            graphicsDevice.Clear(Color.CornflowerBlue);
+            foreach (var entity in _entities)
+            {
+                entity.Update(Time.DeltaTime);
+            }
+        }
 
-            // Later: Scene rendering, UI rendering, etc.
+        public void Draw(Renderer renderer)
+        {
+            renderer.BeginWorld();
+
+            foreach (var entity in _entities)
+            {
+                renderer.DrawEntity(entity);
+            }
+
+            renderer.EndWorld();
+
+            renderer.BeginUI();
+
+            renderer.EndUI();
         }
     }
 }
