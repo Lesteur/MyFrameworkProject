@@ -152,7 +152,7 @@ namespace MyFrameworkProject.Engine.Core
             _gameLoop.AddEntity(entity);
             _gameLoop.AddEntity(entity2);
 
-            Texture2D tilesetTexture = Content.Load<Texture2D>("Tileset Spring");
+            Texture2D tilesetTexture = Content.Load<Texture2D>("Tileset");
             var tileset = new Graphics.Texture(tilesetTexture);
             var tileSprite = new Tileset(tileset, 16, 16);
 

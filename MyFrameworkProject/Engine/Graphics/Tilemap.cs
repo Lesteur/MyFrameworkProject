@@ -259,10 +259,15 @@ namespace MyFrameworkProject.Engine.Graphics
             if (_tileset == null || tileIndex < 0)
                 return Rectangle.Empty;
 
-            int tilesPerRow = (_tileset.Width - _tileset.XMargin) / (_tileset.TileWidth + _tileset.XSpacing);
+            // Calculate the number of tiles per row, accounting for margins and spacing
+            int availableWidth = _tileset.Width - (2 * _tileset.XMargin);
+            int tilesPerRow = (availableWidth + _tileset.XSpacing) / (_tileset.TileWidth + _tileset.XSpacing);
+            
+            // Calculate row and column from tile index
             int row = tileIndex / tilesPerRow;
             int col = tileIndex % tilesPerRow;
 
+            // Calculate the pixel position of the tile in the texture
             int x = _tileset.XMargin + col * (_tileset.TileWidth + _tileset.XSpacing);
             int y = _tileset.YMargin + row * (_tileset.TileHeight + _tileset.YSpacing);
 
