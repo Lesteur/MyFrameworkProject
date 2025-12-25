@@ -4,20 +4,58 @@ using MyFrameworkProject.Engine.Graphics;
 
 namespace MyFrameworkProject.Engine.Core
 {
+    /// <summary>
+    /// Manages the main game loop including entity updates and rendering.
+    /// Maintains a collection of entities and coordinates their update and draw cycles.
+    /// Separates rendering into world-space and UI-space contexts.
+    /// </summary>
     public class GameLoop
     {
+        #region Fields - Entities
+
+        /// <summary>
+        /// The collection of all entities currently managed by the game loop.
+        /// Entities are updated and rendered in the order they were added.
+        /// </summary>
         private readonly List<Entity> _entities = [];
 
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GameLoop"/> class.
+        /// Logs the creation of the game loop for debugging purposes.
+        /// </summary>
         public GameLoop()
         {
             Logger.Info("GameLoop created");
         }
 
+        #endregion
+
+        #region Public Methods - Entity Management
+
+        /// <summary>
+        /// Adds an entity to the game loop.
+        /// The entity will be updated and rendered every frame until removed.
+        /// Entities are processed in the order they were added.
+        /// </summary>
+        /// <param name="entity">The entity to add to the game loop.</param>
         public void AddEntity(Entity entity)
         {
             _entities.Add(entity);
         }
 
+        #endregion
+
+        #region Public Methods - Update
+
+        /// <summary>
+        /// Updates all entities in the game loop.
+        /// Called once per frame by the application.
+        /// Iterates through all entities and updates them with the current delta time.
+        /// </summary>
         public void Update()
         {
             foreach (var entity in _entities)
@@ -26,6 +64,16 @@ namespace MyFrameworkProject.Engine.Core
             }
         }
 
+        #endregion
+
+        #region Public Methods - Draw
+
+        /// <summary>
+        /// Renders all entities in the game loop.
+        /// Called once per frame after Update by the application.
+        /// Separates rendering into two passes: world-space entities and UI-space elements.
+        /// </summary>
+        /// <param name="renderer">The renderer used to draw entities and UI elements.</param>
         public void Draw(Renderer renderer)
         {
             renderer.BeginWorld();
@@ -41,5 +89,7 @@ namespace MyFrameworkProject.Engine.Core
 
             renderer.EndUI();
         }
+
+        #endregion
     }
 }

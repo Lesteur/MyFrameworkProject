@@ -7,17 +7,67 @@ using MyFrameworkProject.Engine.Input;
 
 namespace MyFrameworkProject.Engine.Core
 {
+    /// <summary>
+    /// Main application class that extends MonoGame's Game class.
+    /// Manages the game lifecycle including initialization, updating, rendering, and content loading.
+    /// Provides singleton access and centralizes core engine systems like input, rendering, and game loop.
+    /// </summary>
     public class Application : Game
     {
+        #region Fields - Graphics
+
+        /// <summary>
+        /// The graphics device manager responsible for configuring display settings.
+        /// </summary>
         private readonly GraphicsDeviceManager _graphics;
 
-        private GameLoop _gameLoop;
+        /// <summary>
+        /// The renderer responsible for all 2D sprite rendering operations.
+        /// </summary>
         private Renderer _renderer;
 
+        #endregion
+
+        #region Fields - Game Systems
+
+        /// <summary>
+        /// The game loop that manages entity updates and rendering.
+        /// </summary>
+        private GameLoop _gameLoop;
+
+        #endregion
+
+        #region Properties - Singleton
+
+        /// <summary>
+        /// Gets the singleton instance of the application.
+        /// Provides global access to the application throughout the game.
+        /// </summary>
         public static Application Instance { get; private set; }
+
+        #endregion
+
+        #region Properties - Core Systems
+
+        /// <summary>
+        /// Gets the input manager that handles all input devices (keyboard, gamepad, mouse).
+        /// </summary>
         public InputManager Input { get; private set; }
+
+        /// <summary>
+        /// Gets the renderer responsible for all 2D sprite rendering operations.
+        /// Provides access to world and UI cameras.
+        /// </summary>
         public Renderer Renderer => _renderer;
 
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Application"/> class.
+        /// Sets up the singleton instance, configures the graphics device, and initializes the content pipeline.
+        /// </summary>
         public Application()
         {
             Instance = this;
@@ -29,6 +79,14 @@ namespace MyFrameworkProject.Engine.Core
             ConfigureGraphics();
         }
 
+        #endregion
+
+        #region Private Methods - Configuration
+
+        /// <summary>
+        /// Configures graphics settings based on the engine configuration.
+        /// Sets up window dimensions, VSync, fixed time step, and target frame rate.
+        /// </summary>
         private void ConfigureGraphics()
         {
             _graphics.PreferredBackBufferWidth = EngineConfig.WindowWidth;
@@ -39,6 +97,15 @@ namespace MyFrameworkProject.Engine.Core
             TargetElapsedTime = TimeSpan.FromSeconds(1.0 / EngineConfig.TargetFPS);
         }
 
+        #endregion
+
+        #region MonoGame Lifecycle - Initialize
+
+        /// <summary>
+        /// Initializes the application and all core engine systems.
+        /// Called once after construction but before the first Update call.
+        /// Sets up input manager, renderer, time system, and game loop.
+        /// </summary>
         protected override void Initialize()
         {
             Logger.Info("Application initialized");
@@ -52,34 +119,15 @@ namespace MyFrameworkProject.Engine.Core
             base.Initialize();
         }
 
-        protected override void Update(GameTime gameTime)
-        {
-            Input.Update();
-            Time.Update(gameTime);
+        #endregion
 
-            if (Input.IsDown(InputAction.Left))
-                Renderer.WorldCamera.Move(-200f * Time.DeltaTime, 0);
+        #region MonoGame Lifecycle - LoadContent
 
-            if (Input.IsDown((InputAction.Right)))
-                Renderer.WorldCamera.Move(200f * Time.DeltaTime, 0);
-
-            if (Input.IsDown(InputAction.Confirm))
-                Exit();
-
-            _gameLoop.Update();
-
-            base.Update(gameTime);
-        }
-
-        protected override void Draw(GameTime gameTime)
-        {
-            _renderer.BeginFrame();
-
-            _gameLoop.Draw(_renderer);
-
-            base.Draw(gameTime);
-        }
-
+        /// <summary>
+        /// Loads game content such as textures, sprites, and entities.
+        /// Called once after Initialize and before the first Update call.
+        /// This method contains temporary test code for loading and creating demo entities.
+        /// </summary>
         protected override void LoadContent()
         {
             Logger.Info("Loading content...");
@@ -95,9 +143,64 @@ namespace MyFrameworkProject.Engine.Core
             entity.SetScale(1.0f, 1.0f);
             entity.EnableAnimation(0.05f, true);
 
+            var entity2 = new Entity(sprite);
+            entity2.SetPosition(10, 10);
+            entity2.SetScale(2.0f, 2.0f);
+            entity2.EnableAnimation(0.05f, true);
+
             // Game loop registration
             _gameLoop.AddEntity(entity);
+            _gameLoop.AddEntity(entity2);
         }
 
+        #endregion
+
+        #region MonoGame Lifecycle - Update
+
+        /// <summary>
+        /// Updates the application state and all game systems.
+        /// Called once per frame (or at fixed intervals if using fixed time step).
+        /// Handles input processing, time updates, camera movement, and game loop updates.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values from MonoGame.</param>
+        protected override void Update(GameTime gameTime)
+        {
+            Input.Update();
+            Time.Update(gameTime);
+
+            if (Input.IsDown(InputAction.Left))
+                Renderer.WorldCamera.Move(-200f * Time.DeltaTime, 0);
+
+            if (Input.IsDown(InputAction.Right))
+                Renderer.WorldCamera.Move(200f * Time.DeltaTime, 0);
+
+            if (Input.IsDown(InputAction.Confirm))
+                Exit();
+
+            _gameLoop.Update();
+
+            base.Update(gameTime);
+        }
+
+        #endregion
+
+        #region MonoGame Lifecycle - Draw
+
+        /// <summary>
+        /// Renders the current frame to the screen.
+        /// Called once per frame after Update.
+        /// Begins the frame, delegates rendering to the game loop, and finalizes the frame.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values from MonoGame.</param>
+        protected override void Draw(GameTime gameTime)
+        {
+            _renderer.BeginFrame();
+
+            _gameLoop.Draw(_renderer);
+
+            base.Draw(gameTime);
+        }
+
+        #endregion
     }
 }
