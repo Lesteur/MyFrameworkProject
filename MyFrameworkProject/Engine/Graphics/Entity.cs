@@ -163,13 +163,13 @@ namespace MyFrameworkProject.Engine.Graphics
                 _elapsedTime = 0f;
                 _frameNumber++;
 
-                if (_frameNumber >= _sprite.GetFrameCount())
+                if (_frameNumber >= _sprite.FrameCount)
                 {
                     if (_looping)
                         _frameNumber = 0;
                     else
                     {
-                        _frameNumber = _sprite.GetFrameCount() - 1;
+                        _frameNumber = _sprite.FrameCount - 1;
                         _isPlaying = false;
                     }
                 }
@@ -183,17 +183,16 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the sprite for this entity.
         /// </summary>
-        /// <param name="newSprite">The new sprite to assign.</param>
-        public void SetSprite(Sprite newSprite)
+        /// <param name="sprite">The new sprite to assign.</param>
+        public void SetSprite(Sprite sprite)
         {
-            _sprite = newSprite;
+            _sprite = sprite;
         }
 
         /// <summary>
         /// Gets the sprite associated with this entity.
         /// </summary>
-        /// <returns>The current sprite.</returns>
-        public Sprite GetSprite() => _sprite;
+        public Sprite Sprite => _sprite;
 
         #endregion
 
@@ -202,37 +201,35 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the X-coordinate of the entity's position.
         /// </summary>
-        /// <param name="newX">The new X-coordinate.</param>
-        public void SetX(int newX) => _x = newX;
+        /// <param name="x">The new X-coordinate.</param>
+        public void SetX(int x) => _x = x;
 
         /// <summary>
         /// Sets the Y-coordinate of the entity's position.
         /// </summary>
-        /// <param name="newY">The new Y-coordinate.</param>
-        public void SetY(int newY) => _y = newY;
+        /// <param name="y">The new Y-coordinate.</param>
+        public void SetY(int y) => _y = y;
 
         /// <summary>
         /// Sets the position of the entity.
         /// </summary>
-        /// <param name="newX">The new X-coordinate.</param>
-        /// <param name="newY">The new Y-coordinate.</param>
-        public void SetPosition(int newX, int newY)
+        /// <param name="x">The new X-coordinate.</param>
+        /// <param name="y">The new Y-coordinate.</param>
+        public void SetPosition(int x, int y)
         {
-            _x = newX;
-            _y = newY;
+            _x = x;
+            _y = y;
         }
 
         /// <summary>
         /// Gets the X-coordinate of the entity's position.
         /// </summary>
-        /// <returns>The current X-coordinate.</returns>
-        public int GetX() => _x;
+        public int X => _x;
 
         /// <summary>
         /// Gets the Y-coordinate of the entity's position.
         /// </summary>
-        /// <returns>The current Y-coordinate.</returns>
-        public int GetY() => _y;
+        public int Y => _y;
 
         #endregion
 
@@ -241,17 +238,16 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the rotation angle of the entity.
         /// </summary>
-        /// <param name="newRotation">The new rotation angle in degrees.</param>
-        public void SetRotation(int newRotation)
+        /// <param name="rotation">The new rotation angle in degrees.</param>
+        public void SetRotation(int rotation)
         {
-            _rotation = newRotation;
+            _rotation = rotation;
         }
 
         /// <summary>
         /// Gets the rotation angle of the entity.
         /// </summary>
-        /// <returns>The current rotation angle in degrees.</returns>
-        public int GetRotation() => _rotation;
+        public int Rotation => _rotation;
 
         #endregion
 
@@ -260,43 +256,41 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the horizontal scale factor of the entity.
         /// </summary>
-        /// <param name="newScaleX">The new horizontal scale factor.</param>
-        public void SetScaleX(float newScaleX)
+        /// <param name="scaleX">The new horizontal scale factor.</param>
+        public void SetScaleX(float scaleX)
         {
-            _scaleX = newScaleX;
+            _scaleX = scaleX;
         }
 
         /// <summary>
         /// Sets the vertical scale factor of the entity.
         /// </summary>
-        /// <param name="newScaleY">The new vertical scale factor.</param>
-        public void SetScaleY(float newScaleY)
+        /// <param name="scaleY">The new vertical scale factor.</param>
+        public void SetScaleY(float scaleY)
         {
-            _scaleY = newScaleY;
+            _scaleY = scaleY;
         }
 
         /// <summary>
         /// Sets the scale factors of the entity.
         /// </summary>
-        /// <param name="newScaleX">The new horizontal scale factor.</param>
-        /// <param name="newScaleY">The new vertical scale factor.</param>
-        public void SetScale(float newScaleX, float newScaleY)
+        /// <param name="scaleX">The new horizontal scale factor.</param>
+        /// <param name="scaleY">The new vertical scale factor.</param>
+        public void SetScale(float scaleX, float scaleY)
         {
-            _scaleX = newScaleX;
-            _scaleY = newScaleY;
+            _scaleX = scaleX;
+            _scaleY = scaleY;
         }
 
         /// <summary>
         /// Gets the horizontal scale factor of the entity.
         /// </summary>
-        /// <returns>The current horizontal scale factor.</returns>
-        public float GetScaleX() => _scaleX;
+        public float ScaleX => _scaleX;
 
         /// <summary>
         /// Gets the vertical scale factor of the entity.
         /// </summary>
-        /// <returns>The current vertical scale factor.</returns>
-        public float GetScaleY() => _scaleY;
+        public float ScaleY => _scaleY;
 
         #endregion
 
@@ -305,17 +299,17 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the sprite effects applied when rendering (e.g., flipping).
         /// </summary>
-        /// <param name="newEffects">The sprite effects to apply.</param>
-        public void SetSpriteEffects(SpriteEffects newEffects)
+        /// <param name="effects">The sprite effects to apply.</param>
+        public void SetSpriteEffects(SpriteEffects effects)
         {
-            _spriteEffects = newEffects;
+            _spriteEffects = effects;
         }
 
         /// <summary>
         /// Sets the layer depth for rendering depth sorting.
         /// </summary>
-        /// <param name="newLayerDepth">The new layer depth (0.0 = front, 1.0 = back).</param>
-        public void SetLayerDepth(float newLayerDepth) => _layerDepth = newLayerDepth;
+        /// <param name="layerDepth">The new layer depth (0.0 = front, 1.0 = back).</param>
+        public void SetLayerDepth(float layerDepth) => _layerDepth = layerDepth;
 
         /// <summary>
         /// Sets the color tint applied to the sprite when rendering.
@@ -329,6 +323,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the visibility of the entity.
         /// </summary>
+        /// <param name="visible">True to make the entity visible, false to hide it.</param>
         public void SetVisible(bool visible)
         {
             _visible = visible;
@@ -337,25 +332,22 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Gets the sprite effects applied when rendering.
         /// </summary>
-        /// <returns>The current sprite effects.</returns>
-        public SpriteEffects GetSpriteEffects() => _spriteEffects;
+        public SpriteEffects SpriteEffects => _spriteEffects;
 
         /// <summary>
         /// Gets the layer depth used for rendering depth sorting.
         /// </summary>
-        /// <returns>The current layer depth.</returns>
-        public float GetLayerDepth() => _layerDepth;
+        public float LayerDepth => _layerDepth;
 
         /// <summary>
         /// Gets the color tint applied to the sprite.
         /// </summary>
-        /// <returns>The current color tint.</returns>
-        public Color GetColor() => _color;
+        public Color Color => _color;
 
         /// <summary>
         /// Gets whether the entity is visible and should be rendered.
         /// </summary>
-        public bool IsVisible() => _visible;
+        public bool Visible => _visible;
 
         #endregion
 
@@ -424,17 +416,16 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the current frame number in the animation sequence.
         /// </summary>
-        /// <param name="newFrameNumber">The new frame number.</param>
-        public void SetFrameNumber(int newFrameNumber)
+        /// <param name="frameNumber">The new frame number.</param>
+        public void SetFrameNumber(int frameNumber)
         {
-            _frameNumber = newFrameNumber;
+            _frameNumber = frameNumber;
         }
 
         /// <summary>
         /// Gets the current frame number being displayed in the animation sequence.
         /// </summary>
-        /// <returns>The current frame number.</returns>
-        public int GetFrameNumber() => _frameNumber;
+        public int FrameNumber => _frameNumber;
 
         #endregion
 
@@ -443,8 +434,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Gets the unique identifier of this entity.
         /// </summary>
-        /// <returns>The entity's unique identifier.</returns>
-        public uint GetID() => _id;
+        public uint ID => _id;
 
         #endregion
     }

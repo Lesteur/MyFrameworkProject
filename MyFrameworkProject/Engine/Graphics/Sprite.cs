@@ -86,8 +86,8 @@ namespace MyFrameworkProject.Engine.Graphics
             _texture = texture;
             _frameCount = frameCount;
 
-            _width = texture.GetWidth();
-            _height = texture.GetHeight();
+            _width = texture.Width;
+            _height = texture.Height;
 
             _frameWidth = _width / frameCount;
             _frameHeight = _height;
@@ -118,11 +118,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Gets the texture containing the sprite image data.
         /// </summary>
-        /// <returns>The sprite's texture.</returns>
-        public Texture GetTexture()
-        {
-            return _texture;
-        }
+        public Texture Texture => _texture;
 
         #endregion
 
@@ -131,20 +127,12 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Gets the total width of the sprite texture in pixels.
         /// </summary>
-        /// <returns>The total width of the texture.</returns>
-        public int GetWidth()
-        {
-            return _width;
-        }
+        public int Width => _width;
 
         /// <summary>
         /// Gets the total height of the sprite texture in pixels.
         /// </summary>
-        /// <returns>The total height of the texture.</returns>
-        public int GetHeight()
-        {
-            return _height;
-        }
+        public int Height => _height;
 
         #endregion
 
@@ -153,29 +141,17 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Gets the number of frames in the sprite sheet.
         /// </summary>
-        /// <returns>The total number of frames.</returns>
-        public int GetFrameCount()
-        {
-            return _frameCount;
-        }
+        public int FrameCount => _frameCount;
 
         /// <summary>
         /// Gets the width of a single frame in pixels.
         /// </summary>
-        /// <returns>The width of one frame.</returns>
-        public int GetFrameWidth()
-        {
-            return _frameWidth;
-        }
+        public int FrameWidth => _frameWidth;
 
         /// <summary>
         /// Gets the height of a single frame in pixels.
         /// </summary>
-        /// <returns>The height of one frame.</returns>
-        public int GetFrameHeight()
-        {
-            return _frameHeight;
-        }
+        public int FrameHeight => _frameHeight;
 
         /// <summary>
         /// Calculates and returns the source rectangle for the specified frame number.
@@ -203,31 +179,19 @@ namespace MyFrameworkProject.Engine.Graphics
         /// Gets the X-coordinate of the sprite's origin point.
         /// The origin point is used as the pivot for rotation and positioning.
         /// </summary>
-        /// <returns>The X-coordinate of the origin.</returns>
-        public int GetXOrigin()
-        {
-            return _xOrigin;
-        }
+        public int XOrigin => _xOrigin;
 
         /// <summary>
         /// Gets the Y-coordinate of the sprite's origin point.
         /// The origin point is used as the pivot for rotation and positioning.
         /// </summary>
-        /// <returns>The Y-coordinate of the origin.</returns>
-        public int GetYOrigin()
-        {
-            return _yOrigin;
-        }
+        public int YOrigin => _yOrigin;
 
         /// <summary>
         /// Gets the sprite's origin point as a <see cref="Vector2"/>.
         /// The origin point is used as the pivot for rotation and positioning.
         /// </summary>
-        /// <returns>A <see cref="Vector2"/> representing the origin coordinates.</returns>
-        public Vector2 GetOrigin()
-        {
-            return new Vector2(_xOrigin, _yOrigin);
-        }
+        public Vector2 Origin => new(_xOrigin, _yOrigin);
 
         #endregion
     }

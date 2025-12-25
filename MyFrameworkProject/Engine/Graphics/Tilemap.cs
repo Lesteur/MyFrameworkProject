@@ -127,17 +127,17 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the tileset for this tilemap.
         /// </summary>
-        /// <param name="newTileset">The new tileset to assign.</param>
-        public void SetTileset(Tileset newTileset)
+        /// <param name="tileset">The new tileset to assign.</param>
+        public void SetTileset(Tileset tileset)
         {
-            _tileset = newTileset;
+            _tileset = tileset;
         }
 
         /// <summary>
         /// Gets the tileset associated with this tilemap.
         /// </summary>
         /// <returns>The current tileset.</returns>
-        public Tileset GetTileset() => _tileset;
+        public Tileset Tileset => _tileset;
 
         #endregion
 
@@ -241,13 +241,12 @@ namespace MyFrameworkProject.Engine.Graphics
         /// Gets the width of the tilemap grid in tiles.
         /// </summary>
         /// <returns>The grid width.</returns>
-        public int GetGridWidth() => _gridWidth;
+        public int GridWidth => _gridWidth;
 
         /// <summary>
         /// Gets the height of the tilemap grid in tiles.
         /// </summary>
-        /// <returns>The grid height.</returns>
-        public int GetGridHeight() => _gridHeight;
+        public int GridHeight => _gridHeight;
 
         /// <summary>
         /// Calculates the source rectangle for a specific tile index in the tileset.
@@ -281,37 +280,35 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the X-coordinate of the tilemap's position.
         /// </summary>
-        /// <param name="newX">The new X-coordinate.</param>
-        public void SetX(int newX) => _x = newX;
+        /// <param name="x">The new X-coordinate.</param>
+        public void SetX(int x) => _x = x;
 
         /// <summary>
         /// Sets the Y-coordinate of the tilemap's position.
         /// </summary>
-        /// <param name="newY">The new Y-coordinate.</param>
-        public void SetY(int newY) => _y = newY;
+        /// <param name="y">The new Y-coordinate.</param>
+        public void SetY(int y) => _y = y;
 
         /// <summary>
         /// Sets the position of the tilemap.
         /// </summary>
-        /// <param name="newX">The new X-coordinate.</param>
-        /// <param name="newY">The new Y-coordinate.</param>
-        public void SetPosition(int newX, int newY)
+        /// <param name="x">The new X-coordinate.</param>
+        /// <param name="y">The new Y-coordinate.</param>
+        public void SetPosition(int x, int y)
         {
-            _x = newX;
-            _y = newY;
+            _x = x;
+            _y = y;
         }
 
         /// <summary>
         /// Gets the X-coordinate of the tilemap's position.
         /// </summary>
-        /// <returns>The current X-coordinate.</returns>
-        public int GetX() => _x;
+        public int X => _x;
 
         /// <summary>
         /// Gets the Y-coordinate of the tilemap's position.
         /// </summary>
-        /// <returns>The current Y-coordinate.</returns>
-        public int GetY() => _y;
+        public int Y => _y;
 
         #endregion
 
@@ -320,8 +317,8 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Sets the layer depth for rendering depth sorting.
         /// </summary>
-        /// <param name="newLayerDepth">The new layer depth (0.0 = front, 1.0 = back).</param>
-        public void SetLayerDepth(float newLayerDepth) => _layerDepth = newLayerDepth;
+        /// <param name="layerDepth">The new layer depth (0.0 = front, 1.0 = back).</param>
+        public void SetLayerDepth(float layerDepth) => _layerDepth = layerDepth;
 
         /// <summary>
         /// Sets the color tint applied to the tilemap when rendering.
@@ -344,20 +341,17 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Gets the layer depth used for rendering depth sorting.
         /// </summary>
-        /// <returns>The current layer depth.</returns>
-        public float GetLayerDepth() => _layerDepth;
+        public float LayerDepth => _layerDepth;
 
         /// <summary>
         /// Gets the color tint applied to the tilemap.
         /// </summary>
-        /// <returns>The current color tint.</returns>
-        public Color GetColor() => _color;
+        public Color Color => _color;
 
         /// <summary>
         /// Gets the visibility state of the tilemap.
         /// </summary>
-        /// <returns>True if the tilemap is visible, false otherwise.</returns>
-        public bool IsVisible() => _visible;
+        public bool Visible => _visible;
 
         #endregion
 
@@ -366,8 +360,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// Gets the unique identifier of this tilemap.
         /// </summary>
-        /// <returns>The tilemap's unique identifier.</returns>
-        public uint GetID() => _id;
+        public uint ID => _id;
 
         #endregion
     }

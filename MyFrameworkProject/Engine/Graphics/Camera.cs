@@ -7,7 +7,11 @@ namespace MyFrameworkProject.Engine.Graphics
     /// Provides automatic transform matrix calculation and dirty-checking optimization for performance.
     /// The camera centers the view around its position and applies transformations relative to the viewport center.
     /// </summary>
-    public sealed class Camera
+    /// <param name="x">The initial X-coordinate of the camera position in world space.</param>
+    /// <param name="y">The initial Y-coordinate of the camera position in world space.</param>
+    /// <param name="viewportWidth">The width of the viewport in pixels.</param>
+    /// <param name="viewportHeight">The height of the viewport in pixels.</param>
+    public sealed class Camera(int x, int y, int viewportWidth, int viewportHeight)
     {
         #region Fields - Transform
 
@@ -15,7 +19,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// The position of the camera in world space.
         /// The camera centers the view around this position.
         /// </summary>
-        private Vector2 _position;
+        private Vector2 _position = new(x, y);
 
         /// <summary>
         /// The rotation angle of the camera in radians.
@@ -37,12 +41,12 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// The width of the viewport in pixels.
         /// </summary>
-        private readonly int _viewportWidth;
+        private readonly int _viewportWidth = viewportWidth;
 
         /// <summary>
         /// The height of the viewport in pixels.
         /// </summary>
-        private readonly int _viewportHeight;
+        private readonly int _viewportHeight = viewportHeight;
 
         #endregion
 
@@ -92,20 +96,6 @@ namespace MyFrameworkProject.Engine.Graphics
         #endregion
 
         #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Camera"/> class with the specified position and viewport dimensions.
-        /// </summary>
-        /// <param name="x">The initial X-coordinate of the camera position in world space.</param>
-        /// <param name="y">The initial Y-coordinate of the camera position in world space.</param>
-        /// <param name="viewportWidth">The width of the viewport in pixels.</param>
-        /// <param name="viewportHeight">The height of the viewport in pixels.</param>
-        public Camera(int x, int y, int viewportWidth, int viewportHeight)
-        {
-            _position = new Vector2(x, y);
-            _viewportWidth = viewportWidth;
-            _viewportHeight = viewportHeight;
-        }
 
         #endregion
 

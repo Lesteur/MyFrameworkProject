@@ -19,6 +19,10 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         private readonly List<Entity> _entities = [];
 
+        /// <summary>
+        /// The collection of all tilemaps currently managed by the game loop.
+        /// Tilemaps are rendered in the world-space context.
+        /// </summary>
         private readonly List<Tilemap> _tilemaps = [];
 
         #endregion

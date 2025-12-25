@@ -164,34 +164,40 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="entity">The entity to render.</param>
         public void DrawEntity(Entity entity)
         {
-            if (entity == null || !entity.IsVisible())
+            if (entity == null || !entity.Visible)
                 return;
 
-            var sprite = entity.GetSprite();
+            var sprite = entity.Sprite;
             if (sprite == null)
                 return;
 
             _spriteBatch.Draw(
-                sprite.GetTexture().GetNativeTexture(),
-                new Vector2(entity.GetX(), entity.GetY()),
-                sprite.GetSourceRectangle(entity.GetFrameNumber()),
-                entity.GetColor(),
-                MathHelper.ToRadians(entity.GetRotation()),
-                sprite.GetOrigin(),
-                new Vector2(entity.GetScaleX(), entity.GetScaleY()),
+                sprite.Texture.NativeTexture,
+                new Vector2(entity.X, entity.Y),
+                sprite.GetSourceRectangle(entity.FrameNumber),
+                entity.Color,
+                MathHelper.ToRadians(entity.Rotation),
+                sprite.Origin,
+                new Vector2(entity.ScaleX, entity.ScaleY),
                 SpriteEffects.None,
-                entity.GetLayerDepth()
+                entity.LayerDepth
             );
         }
 
+        /// <summary>
+        /// Draws a tilemap to the screen by iterating over its grid and rendering each
+        /// visible tile using the associated tileset texture.
+        /// The tilemap is rendered in world-space coordinates with the current world camera transformation applied.
+        /// </summary>
+        /// <param name="tilemap">The tilemap to render.</param>
         public void DrawTilemap(Tilemap tilemap)
         {
-            if (tilemap == null || !tilemap.IsVisible())
+            if (tilemap == null || !tilemap.Visible)
                 return;
 
-            for (int y = 0; y < tilemap.GetGridHeight(); y++)
+            for (int y = 0; y < tilemap.GridHeight; y++)
             {
-                for (int x = 0; x < tilemap.GetGridWidth(); x++)
+                for (int x = 0; x < tilemap.GridWidth; x++)
                 {
                     int tileIndex = tilemap.GetTile(x, y);
                     if (tileIndex < 0)
@@ -199,20 +205,20 @@ namespace MyFrameworkProject.Engine.Graphics
 
                     Rectangle sourceRect = tilemap.GetTileSourceRectangle(tileIndex);
                     Vector2 position = new(
-                        tilemap.GetX() + x * sourceRect.Width,
-                        tilemap.GetY() + y * sourceRect.Height
+                        tilemap.X + x * sourceRect.Width,
+                        tilemap.Y + y * sourceRect.Height
                     );
 
                     _spriteBatch.Draw(
-                        tilemap.GetTileset().GetTexture().GetNativeTexture(),
+                        tilemap.Tileset.Texture.NativeTexture,
                         position,
                         sourceRect,
-                        tilemap.GetColor(),
+                        tilemap.Color,
                         0f,
                         Vector2.Zero,
                         1f,
                         SpriteEffects.None,
-                        tilemap.GetLayerDepth()
+                        tilemap.LayerDepth
                     );
                 }
             }
