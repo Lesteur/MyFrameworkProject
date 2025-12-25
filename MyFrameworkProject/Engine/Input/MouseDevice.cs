@@ -10,7 +10,7 @@ namespace MyFrameworkProject.Engine.Input
             return Mouse.GetState();
         }
 
-        public bool IsButtonDown(ButtonState state)
+        public static bool IsButtonDown(ButtonState state)
         {
             return state == ButtonState.Pressed;
         }

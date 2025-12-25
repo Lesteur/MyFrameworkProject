@@ -3,8 +3,8 @@
     public static class EngineConfig
     {
         // Internal virtual resolution used for rendering
-        public const int VirtualWidth = 320;
-        public const int VirtualHeight = 180;
+        public const int VirtualWidth = 640;
+        public const int VirtualHeight = 360;
 
         // Window dimensions
         public const int WindowWidth = 1280;

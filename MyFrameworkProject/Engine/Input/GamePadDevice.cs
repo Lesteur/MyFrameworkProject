@@ -3,14 +3,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace MyFrameworkProject.Engine.Input
 {
-    public sealed class GamePadDevice : InputDevice<GamePadState>
+    public sealed class GamePadDevice(PlayerIndex index) : InputDevice<GamePadState>
     {
-        private readonly PlayerIndex _playerIndex;
-
-        public GamePadDevice(PlayerIndex index)
-        {
-            _playerIndex = index;
-        }
+        private readonly PlayerIndex _playerIndex = index;
 
         protected override GamePadState GetState()
         {

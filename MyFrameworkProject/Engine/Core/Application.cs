@@ -16,7 +16,6 @@ namespace MyFrameworkProject.Engine.Core
 
         public static Application Instance { get; private set; }
         public InputManager Input { get; private set; }
-
         public Renderer Renderer => _renderer;
 
         public Application()
@@ -58,11 +57,11 @@ namespace MyFrameworkProject.Engine.Core
             Input.Update();
             Time.Update(gameTime);
 
-            if (Input.IsPressed(InputAction.Left))
-                Logger.Info("Left action triggered");
+            if (Input.IsDown(InputAction.Left))
+                Renderer.WorldCamera.Move(-200f * Time.DeltaTime, 0);
 
-            if (Input.IsPressed(InputAction.Right))
-                Logger.Info("Right action triggered");
+            if (Input.IsDown((InputAction.Right)))
+                Renderer.WorldCamera.Move(200f * Time.DeltaTime, 0);
 
             if (Input.IsDown(InputAction.Confirm))
                 Exit();
@@ -85,19 +84,18 @@ namespace MyFrameworkProject.Engine.Core
         {
             Logger.Info("Loading content...");
 
-            // Chargement de la texture depuis le Content Pipeline
+            // Loading
             Texture2D nativeTexture = Content.Load<Texture2D>("spr_jonathan");
-
-            // Encapsulation moteur
             var texture = new Graphics.Texture(nativeTexture);
-            var sprite = new Sprite(texture, 14);
+            var sprite = new Sprite(texture, 0, 0, 14);
 
-            // Création d'une entité de test
+            // Entity creation
             var entity = new Entity(sprite);
             entity.SetPosition(0, 0);
+            entity.SetScale(1.0f, 1.0f);
             entity.EnableAnimation(0.05f, true);
 
-            // On transmet l'entité au GameLoop
+            // Game loop registration
             _gameLoop.AddEntity(entity);
         }
 

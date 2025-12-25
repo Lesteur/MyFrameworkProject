@@ -14,12 +14,15 @@ namespace MyFrameworkProject.Engine.Graphics
         private Camera _worldCamera;
         private Camera _uiCamera;
 
+        private Matrix _scalingMatrix;
+
         public Renderer(GraphicsDevice graphicsDevice)
         {
             _graphicsDevice = graphicsDevice;
             _spriteBatch = new SpriteBatch(graphicsDevice);
 
             InitializeCameras();
+            CalculateScalingMatrix();
         }
 
         private void InitializeCameras()
@@ -39,6 +42,18 @@ namespace MyFrameworkProject.Engine.Graphics
             );
         }
 
+        private void CalculateScalingMatrix()
+        {
+            // Calculate the scaling factors
+            float scaleX = (float)EngineConfig.WindowWidth / EngineConfig.VirtualWidth;
+            float scaleY = (float)EngineConfig.WindowHeight / EngineConfig.VirtualHeight;
+
+            // Use the smaller scale to maintain aspect ratio
+            float scale = MathHelper.Min(scaleX, scaleY); // Letterbox
+
+            _scalingMatrix = Matrix.CreateScale(scale, scale, 1f);
+        }
+
         public Camera WorldCamera => _worldCamera;
         public Camera UICamera => _uiCamera;
 
@@ -50,17 +65,14 @@ namespace MyFrameworkProject.Engine.Graphics
         public void BeginWorld()
         {
             _spriteBatch.Begin(
-                transformMatrix: _worldCamera.GetViewProjection(),
-                samplerState: SamplerState.PointClamp,
                 sortMode: SpriteSortMode.Deferred,
-                blendState: BlendState.AlphaBlend
+                blendState: BlendState.AlphaBlend,
+                samplerState: SamplerState.PointClamp,
+                depthStencilState: null,
+                rasterizerState: null,
+                effect: null,
+                transformMatrix: _worldCamera.GetTransformMatrix() * _scalingMatrix
             );
-
-            /*
-            _spriteBatch.Begin(
-                samplerState: SamplerState.PointClamp
-            );
-            */
         }
 
         public void DrawEntity(Entity entity)
@@ -90,10 +102,13 @@ namespace MyFrameworkProject.Engine.Graphics
         public void BeginUI()
         {
             _spriteBatch.Begin(
-                transformMatrix: _uiCamera.GetViewProjection(),
-                samplerState: SamplerState.PointClamp,
                 sortMode: SpriteSortMode.Deferred,
-                blendState: BlendState.AlphaBlend
+                blendState: BlendState.AlphaBlend,
+                samplerState: SamplerState.PointClamp,
+                depthStencilState: null,
+                rasterizerState: null,
+                effect: null,
+                transformMatrix: _uiCamera.GetTransformMatrix() * _scalingMatrix
             );
         }
 

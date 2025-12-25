@@ -7,8 +7,8 @@
     {
         private static int _counter = 0;
 
-        private readonly uint _id;
-        private Sprite _sprite;
+        private readonly uint _id = 0;
+        private Sprite _sprite = null;
 
         private int _x = 0;
         private int _y = 0;
@@ -33,7 +33,13 @@
 
         public Entity(Sprite sprite) : this()
         {
+            _id = (uint)++_counter;
             _sprite = sprite;
+        }
+
+        public void SetSprite(Sprite newSprite)
+        {
+            _sprite = newSprite;
         }
 
         public void SetX(int newX) => _x = newX;

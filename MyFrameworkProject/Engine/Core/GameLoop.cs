@@ -1,5 +1,6 @@
-﻿using MyFrameworkProject.Engine.Graphics;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+
+using MyFrameworkProject.Engine.Graphics;
 
 namespace MyFrameworkProject.Engine.Core
 {
