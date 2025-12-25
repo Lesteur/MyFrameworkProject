@@ -151,6 +151,14 @@ namespace MyFrameworkProject.Engine.Core
             // Game loop registration
             _gameLoop.AddEntity(entity);
             _gameLoop.AddEntity(entity2);
+
+            Texture2D tilesetTexture = Content.Load<Texture2D>("Tileset Spring");
+            var tileset = new Graphics.Texture(tilesetTexture);
+            var tileSprite = new Tileset(tileset, 16, 16);
+
+            var tilemap = new Tilemap(tileSprite, 50, 50);
+            tilemap.Fill(2);
+            _gameLoop.AddTilemap(tilemap);
         }
 
         #endregion

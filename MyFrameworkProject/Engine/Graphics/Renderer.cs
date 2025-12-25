@@ -164,6 +164,9 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="entity">The entity to render.</param>
         public void DrawEntity(Entity entity)
         {
+            if (entity == null || !entity.IsVisible())
+                return;
+
             var sprite = entity.GetSprite();
             if (sprite == null)
                 return;
@@ -179,6 +182,40 @@ namespace MyFrameworkProject.Engine.Graphics
                 SpriteEffects.None,
                 entity.GetLayerDepth()
             );
+        }
+
+        public void DrawTilemap(Tilemap tilemap)
+        {
+            if (tilemap == null || !tilemap.IsVisible())
+                return;
+
+            for (int y = 0; y < tilemap.GetGridHeight(); y++)
+            {
+                for (int x = 0; x < tilemap.GetGridWidth(); x++)
+                {
+                    int tileIndex = tilemap.GetTile(x, y);
+                    if (tileIndex < 0)
+                        continue;
+
+                    Rectangle sourceRect = tilemap.GetTileSourceRectangle(tileIndex);
+                    Vector2 position = new(
+                        tilemap.GetX() + x * sourceRect.Width,
+                        tilemap.GetY() + y * sourceRect.Height
+                    );
+
+                    _spriteBatch.Draw(
+                        tilemap.GetTileset().GetTexture().GetNativeTexture(),
+                        position,
+                        sourceRect,
+                        tilemap.GetColor(),
+                        0f,
+                        Vector2.Zero,
+                        1f,
+                        SpriteEffects.None,
+                        tilemap.GetLayerDepth()
+                    );
+                }
+            }
         }
 
         /// <summary>

@@ -41,12 +41,12 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// The X-coordinate of the entity's position.
         /// </summary>
-        private int _x = 0;
+        protected int _x = 0;
 
         /// <summary>
         /// The Y-coordinate of the entity's position.
         /// </summary>
-        private int _y = 0;
+        protected int _y = 0;
 
         /// <summary>
         /// The rotation angle of the entity in degrees.
@@ -81,6 +81,11 @@ namespace MyFrameworkProject.Engine.Graphics
         /// The color tint applied to the sprite when rendering.
         /// </summary>
         private Color _color = Color.White;
+
+        /// <summary>
+        /// Indicates whether the entity is visible and should be rendered.
+        /// </summary>
+        private bool _visible = true;
 
         #endregion
 
@@ -322,6 +327,14 @@ namespace MyFrameworkProject.Engine.Graphics
         }
 
         /// <summary>
+        /// Sets the visibility of the entity.
+        /// </summary>
+        public void SetVisible(bool visible)
+        {
+            _visible = visible;
+        }
+
+        /// <summary>
         /// Gets the sprite effects applied when rendering.
         /// </summary>
         /// <returns>The current sprite effects.</returns>
@@ -338,6 +351,11 @@ namespace MyFrameworkProject.Engine.Graphics
         /// </summary>
         /// <returns>The current color tint.</returns>
         public Color GetColor() => _color;
+
+        /// <summary>
+        /// Gets whether the entity is visible and should be rendered.
+        /// </summary>
+        public bool IsVisible() => _visible;
 
         #endregion
 

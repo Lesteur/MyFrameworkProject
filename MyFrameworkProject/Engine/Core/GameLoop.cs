@@ -19,6 +19,8 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         private readonly List<Entity> _entities = [];
 
+        private readonly List<Tilemap> _tilemaps = [];
+
         #endregion
 
         #region Constructors
@@ -45,6 +47,11 @@ namespace MyFrameworkProject.Engine.Core
         public void AddEntity(Entity entity)
         {
             _entities.Add(entity);
+        }
+
+        public void AddTilemap(Tilemap tilemap)
+        {
+            _tilemaps.Add(tilemap);
         }
 
         #endregion
@@ -77,6 +84,11 @@ namespace MyFrameworkProject.Engine.Core
         public void Draw(Renderer renderer)
         {
             renderer.BeginWorld();
+
+            foreach (var tilemap in _tilemaps)
+            {
+                renderer.DrawTilemap(tilemap);
+            }
 
             foreach (var entity in _entities)
             {
