@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyFrameworkProject.Engine.Graphics;
+using System.Threading;
 
 namespace MyFrameworkProject.Engine.Components
 {
@@ -131,7 +132,7 @@ namespace MyFrameworkProject.Engine.Components
         /// </summary>
         public Entity()
         {
-            _id = (uint)++_counter;
+            _id = (uint)Interlocked.Increment(ref _counter);
         }
 
         /// <summary>
@@ -161,16 +162,19 @@ namespace MyFrameworkProject.Engine.Components
 
             if (_elapsedTime >= _frameDuration)
             {
-                _elapsedTime = 0f;
+                _elapsedTime -= _frameDuration; // Preserve overflow for smoother animation
                 _frameNumber++;
 
-                if (_frameNumber >= _sprite.FrameCount)
+                int frameCount = _sprite.FrameCount;
+                if (_frameNumber >= frameCount)
                 {
                     if (_looping)
+                    {
                         _frameNumber = 0;
+                    }
                     else
                     {
-                        _frameNumber = _sprite.FrameCount - 1;
+                        _frameNumber = frameCount - 1;
                         _isPlaying = false;
                     }
                 }
@@ -232,6 +236,8 @@ namespace MyFrameworkProject.Engine.Components
         /// </summary>
         public int Y => _y;
 
+        public Vector2 Position => new(_x, _y);
+
         #endregion
 
         #region Public Methods - Rotation
@@ -276,13 +282,16 @@ namespace MyFrameworkProject.Engine.Components
 
         /// <summary>
         /// Sets the scale factors of the entity.
+        /// Optimized to set both values directly without extra method calls.
         /// </summary>
         /// <param name="scaleX">The new horizontal scale factor.</param>
         /// <param name="scaleY">The new vertical scale factor.</param>
         public void SetScale(float scaleX, float scaleY)
         {
-            SetScaleX(scaleX);
-            SetScaleY(scaleY);
+            if (scaleX > 0f)
+                _scaleX = scaleX;
+            if (scaleY > 0f)
+                _scaleY = scaleY;
         }
 
         /// <summary>

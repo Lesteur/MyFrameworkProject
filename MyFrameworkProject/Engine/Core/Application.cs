@@ -36,6 +36,11 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         private GameLoop _gameLoop;
 
+        /// <summary>
+        /// The game object that the camera is currently following.
+        /// </summary>
+        private GameObject _followingObject = null;
+
         #endregion
 
         #region Properties - Singleton
@@ -115,7 +120,7 @@ namespace MyFrameworkProject.Engine.Core
             _renderer = new Renderer(GraphicsDevice);
 
             Time.Initialize();
-            _gameLoop = new GameLoop();
+            _gameLoop = new GameLoop(Input);
 
             base.Initialize();
         }
@@ -138,20 +143,17 @@ namespace MyFrameworkProject.Engine.Core
             var texture = new Graphics.Texture(nativeTexture);
             var sprite = new Sprite(texture, 0, 0, 14);
 
-            // Entity creation
-            var entity = new Entity(sprite);
-            entity.SetPosition(0, 0);
-            entity.SetScale(1.0f, 1.0f);
-            entity.EnableAnimation(0.05f, true);
+            // GameObject creation using ObjectTest
+            var testObject = new ObjectTest(sprite);
+            testObject.SetPosition(10, 10);
+            testObject.SetScale(1.0f, 1.0f);
+            testObject.SetMoveSpeed(150f);
+            testObject.EnableAnimation(0.05f, true);
 
-            var entity2 = new GameObject(sprite);
-            entity2.SetPosition(10, 10);
-            entity2.SetScale(2.0f, 2.0f);
-            entity2.EnableAnimation(0.05f, true);
+            _followingObject = testObject;
 
             // Game loop registration
-            _gameLoop.AddEntity(entity);
-            _gameLoop.AddEntity(entity2);
+            _gameLoop.AddGameObject(testObject);
 
             Texture2D tilesetTexture = Content.Load<Texture2D>("Tileset");
             var tileset = new Graphics.Texture(tilesetTexture);
@@ -177,15 +179,6 @@ namespace MyFrameworkProject.Engine.Core
             Input.Update();
             Time.Update(gameTime);
 
-            if (Input.IsDown(InputAction.Left))
-                Renderer.WorldCamera.Move(-200f * Time.DeltaTime, 0);
-
-            if (Input.IsDown(InputAction.Right))
-                Renderer.WorldCamera.Move(200f * Time.DeltaTime, 0);
-
-            if (Input.IsDown(InputAction.Confirm))
-                Exit();
-
             _gameLoop.Update();
 
             base.Update(gameTime);
@@ -203,6 +196,12 @@ namespace MyFrameworkProject.Engine.Core
         /// <param name="gameTime">Provides a snapshot of timing values from MonoGame.</param>
         protected override void Draw(GameTime gameTime)
         {
+            if (_followingObject != null)
+            {
+                var position = _followingObject.Position;
+                Renderer.WorldCamera.SetPosition(position.X, position.Y);
+            }
+
             _renderer.BeginFrame();
 
             _gameLoop.Draw(_renderer);

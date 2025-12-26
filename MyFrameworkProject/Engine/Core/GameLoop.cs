@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
+using MyFrameworkProject.Engine.Input;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -16,6 +17,7 @@ namespace MyFrameworkProject.Engine.Core
         /// <summary>
         /// The collection of all game objects currently managed by the game loop.
         /// Game objects are updated and rendered in the order they were added.
+        /// </summary>
         private readonly List<GameObject> _gameObjects = [];
 
         /// <summary>
@@ -30,6 +32,26 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         private readonly List<Tilemap> _tilemaps = [];
 
+        /// <summary>
+        /// Pending entities to add, processed at the end of the frame to avoid collection modification during iteration.
+        /// </summary>
+        private readonly List<Entity> _entitiesToAdd = [];
+
+        /// <summary>
+        /// Pending game objects to add, processed at the end of the frame to avoid collection modification during iteration.
+        /// </summary>
+        private readonly List<GameObject> _gameObjectsToAdd = [];
+
+        /// <summary>
+        /// Pending entities to remove, processed at the end of the frame to avoid collection modification during iteration.
+        /// </summary>
+        private readonly HashSet<Entity> _entitiesToRemove = [];
+
+        /// <summary>
+        /// Pending game objects to remove, processed at the end of the frame to avoid collection modification during iteration.
+        /// </summary>
+        private readonly HashSet<GameObject> _gameObjectsToRemove = [];
+
         #endregion
 
         #region Constructors
@@ -38,8 +60,12 @@ namespace MyFrameworkProject.Engine.Core
         /// Initializes a new instance of the <see cref="GameLoop"/> class.
         /// Logs the creation of the game loop for debugging purposes.
         /// </summary>
-        public GameLoop()
+        /// <param name="inputManager">The input manager to provide to all game objects.</param>
+        public GameLoop(InputManager inputManager)
         {
+            // Initialize static input reference for all GameObjects
+            GameObject.InitializeInput(inputManager);
+            
             Logger.Info("GameLoop created");
         }
 
@@ -51,46 +77,118 @@ namespace MyFrameworkProject.Engine.Core
         /// Adds an entity to the game loop.
         /// The entity will be updated and rendered every frame until removed.
         /// Entities are processed in the order they were added.
+        /// Addition is deferred until the end of the current frame.
         /// </summary>
         /// <param name="entity">The entity to add to the game loop.</param>
         public void AddEntity(Entity entity)
         {
-            _entities.Add(entity);
+            _entitiesToAdd.Add(entity);
         }
 
+        /// <summary>
+        /// Removes an entity from the game loop.
+        /// Removal is deferred until the end of the current frame to avoid collection modification during iteration.
+        /// </summary>
+        /// <param name="entity">The entity to remove from the game loop.</param>
         public void RemoveEntity(Entity entity)
         {
-            _entities.Remove(entity);
+            _entitiesToRemove.Add(entity);
         }
 
+        /// <summary>
+        /// Clears all entities from the game loop immediately.
+        /// </summary>
         public void ClearEntities()
         {
             _entities.Clear();
+            _entitiesToAdd.Clear();
+            _entitiesToRemove.Clear();
         }
 
+        /// <summary>
+        /// Adds a game object to the game loop.
+        /// Game objects are also added to the entity list for rendering.
+        /// Addition is deferred until the end of the current frame.
+        /// </summary>
+        /// <param name="gameObject">The game object to add to the game loop.</param>
         public void AddGameObject(GameObject gameObject)
         {
-            _gameObjects.Add(gameObject);
-            _entities.Add(gameObject);
+            _gameObjectsToAdd.Add(gameObject);
+            _entitiesToAdd.Add(gameObject);
         }
 
+        /// <summary>
+        /// Removes a game object from the game loop.
+        /// Removal is deferred until the end of the current frame to avoid collection modification during iteration.
+        /// </summary>
+        /// <param name="gameObject">The game object to remove from the game loop.</param>
         public void RemoveGameObject(GameObject gameObject)
         {
-            _gameObjects.Remove(gameObject);
-            _entities.Remove(gameObject);
+            _gameObjectsToRemove.Add(gameObject);
+            _entitiesToRemove.Add(gameObject);
         }
 
+        /// <summary>
+        /// Clears all game objects from the game loop immediately.
+        /// </summary>
         public void ClearGameObjects()
         {
             foreach (var gameObject in _gameObjects)
                 _entities.Remove(gameObject);
 
             _gameObjects.Clear();
+            _gameObjectsToAdd.Clear();
+            _gameObjectsToRemove.Clear();
         }
 
+        /// <summary>
+        /// Adds a tilemap to the game loop for rendering.
+        /// </summary>
+        /// <param name="tilemap">The tilemap to add to the game loop.</param>
         public void AddTilemap(Tilemap tilemap)
         {
             _tilemaps.Add(tilemap);
+        }
+
+        #endregion
+
+        #region Private Methods - Deferred Operations
+
+        /// <summary>
+        /// Processes all pending add and remove operations for entities and game objects.
+        /// Called at the end of each frame to avoid modifying collections during iteration.
+        /// </summary>
+        private void ProcessPendingOperations()
+        {
+            // Process removals first
+            if (_entitiesToRemove.Count > 0)
+            {
+                foreach (var entity in _entitiesToRemove)
+                    _entities.Remove(entity);
+                
+                _entitiesToRemove.Clear();
+            }
+
+            if (_gameObjectsToRemove.Count > 0)
+            {
+                foreach (var gameObject in _gameObjectsToRemove)
+                    _gameObjects.Remove(gameObject);
+                
+                _gameObjectsToRemove.Clear();
+            }
+
+            // Process additions
+            if (_entitiesToAdd.Count > 0)
+            {
+                _entities.AddRange(_entitiesToAdd);
+                _entitiesToAdd.Clear();
+            }
+
+            if (_gameObjectsToAdd.Count > 0)
+            {
+                _gameObjects.AddRange(_gameObjectsToAdd);
+                _gameObjectsToAdd.Clear();
+            }
         }
 
         #endregion
@@ -100,30 +198,34 @@ namespace MyFrameworkProject.Engine.Core
         /// <summary>
         /// Updates all entities in the game loop.
         /// Called once per frame by the application.
-        /// Iterates through all entities and updates them with the current delta time.
+        /// Optimized to minimize iterations and cache delta time for better performance.
         /// </summary>
         public void Update()
         {
-            foreach (var gameObject in _gameObjects)
+            float deltaTime = Time.DeltaTime;
+
+            // Single optimized pass for game objects lifecycle
+            int gameObjectCount = _gameObjects.Count;
+            for (int i = 0; i < gameObjectCount; i++)
             {
-                if (gameObject.Active)
-                    gameObject.BeforeUpdate(Time.DeltaTime);
+                var gameObject = _gameObjects[i];
+                if (!gameObject.Active)
+                    continue;
+
+                gameObject.BeforeUpdate(deltaTime);
+                gameObject.Update(deltaTime);
+                gameObject.AfterUpdate(deltaTime);
             }
 
-            foreach (var gameObject in _gameObjects)
+            // Update animations for all entities in a single pass
+            int entityCount = _entities.Count;
+            for (int i = 0; i < entityCount; i++)
             {
-                if (gameObject.Active)
-                    gameObject.Update(Time.DeltaTime);
+                _entities[i].UpdateAnimation(deltaTime);
             }
 
-            foreach (var gameObject in _gameObjects)
-            {
-                if (gameObject.Active)
-                    gameObject.AfterUpdate(Time.DeltaTime);
-            }
-
-            foreach (var entity in _entities)
-                entity.UpdateAnimation(Time.DeltaTime);
+            // Process pending add/remove operations
+            ProcessPendingOperations();
         }
 
         #endregion
@@ -134,20 +236,25 @@ namespace MyFrameworkProject.Engine.Core
         /// Renders all entities in the game loop.
         /// Called once per frame after Update by the application.
         /// Separates rendering into two passes: world-space entities and UI-space elements.
+        /// Optimized using for loops instead of foreach to reduce allocations.
         /// </summary>
         /// <param name="renderer">The renderer used to draw entities and UI elements.</param>
         public void Draw(Renderer renderer)
         {
             renderer.BeginWorld();
 
-            foreach (var tilemap in _tilemaps)
+            // Draw tilemaps
+            int tilemapCount = _tilemaps.Count;
+            for (int i = 0; i < tilemapCount; i++)
             {
-                renderer.DrawTilemap(tilemap);
+                renderer.DrawTilemap(_tilemaps[i]);
             }
 
-            foreach (var entity in _entities)
+            // Draw entities
+            int entityCount = _entities.Count;
+            for (int i = 0; i < entityCount; i++)
             {
-                renderer.DrawEntity(entity);
+                renderer.DrawEntity(_entities[i]);
             }
 
             renderer.EndWorld();
