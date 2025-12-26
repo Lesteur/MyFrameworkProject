@@ -1,7 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyFrameworkProject.Engine.Graphics;
 
-namespace MyFrameworkProject.Engine.Graphics
+namespace MyFrameworkProject.Engine.Components
 {
     /// <summary>
     /// Represents a game entity with sprite rendering and animation capabilities.
@@ -151,7 +152,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// Advances to the next frame when the frame duration has elapsed.
         /// </summary>
         /// <param name="deltaTime">The time elapsed since the last update, in seconds.</param>
-        public void Update(float deltaTime)
+        public void UpdateAnimation(float deltaTime)
         {
             if (!_animationEnabled || !_isPlaying || _sprite == null)
                 return;
@@ -259,7 +260,8 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="scaleX">The new horizontal scale factor.</param>
         public void SetScaleX(float scaleX)
         {
-            _scaleX = scaleX;
+            if (scaleX > 0f)
+                _scaleX = scaleX;
         }
 
         /// <summary>
@@ -268,7 +270,8 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="scaleY">The new vertical scale factor.</param>
         public void SetScaleY(float scaleY)
         {
-            _scaleY = scaleY;
+            if (scaleY > 0f)
+                _scaleY = scaleY;
         }
 
         /// <summary>
@@ -278,8 +281,8 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="scaleY">The new vertical scale factor.</param>
         public void SetScale(float scaleX, float scaleY)
         {
-            _scaleX = scaleX;
-            _scaleY = scaleY;
+            SetScaleX(scaleX);
+            SetScaleY(scaleY);
         }
 
         /// <summary>

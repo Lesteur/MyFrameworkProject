@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MyFrameworkProject.Engine.Components;
+using MyFrameworkProject.Engine.Graphics;
 
-namespace MyFrameworkProject.Engine.Graphics
+namespace MyFrameworkProject.Engine.Core
 {
     /// <summary>
     /// Central rendering system responsible for managing sprite batch operations and camera transformations.

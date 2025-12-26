@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-
+using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
 
 namespace MyFrameworkProject.Engine.Core
@@ -12,6 +12,11 @@ namespace MyFrameworkProject.Engine.Core
     public class GameLoop
     {
         #region Fields - Entities
+
+        /// <summary>
+        /// The collection of all game objects currently managed by the game loop.
+        /// Game objects are updated and rendered in the order they were added.
+        private readonly List<GameObject> _gameObjects = [];
 
         /// <summary>
         /// The collection of all entities currently managed by the game loop.
@@ -53,6 +58,36 @@ namespace MyFrameworkProject.Engine.Core
             _entities.Add(entity);
         }
 
+        public void RemoveEntity(Entity entity)
+        {
+            _entities.Remove(entity);
+        }
+
+        public void ClearEntities()
+        {
+            _entities.Clear();
+        }
+
+        public void AddGameObject(GameObject gameObject)
+        {
+            _gameObjects.Add(gameObject);
+            _entities.Add(gameObject);
+        }
+
+        public void RemoveGameObject(GameObject gameObject)
+        {
+            _gameObjects.Remove(gameObject);
+            _entities.Remove(gameObject);
+        }
+
+        public void ClearGameObjects()
+        {
+            foreach (var gameObject in _gameObjects)
+                _entities.Remove(gameObject);
+
+            _gameObjects.Clear();
+        }
+
         public void AddTilemap(Tilemap tilemap)
         {
             _tilemaps.Add(tilemap);
@@ -69,10 +104,26 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         public void Update()
         {
-            foreach (var entity in _entities)
+            foreach (var gameObject in _gameObjects)
             {
-                entity.Update(Time.DeltaTime);
+                if (gameObject.Active)
+                    gameObject.BeforeUpdate(Time.DeltaTime);
             }
+
+            foreach (var gameObject in _gameObjects)
+            {
+                if (gameObject.Active)
+                    gameObject.Update(Time.DeltaTime);
+            }
+
+            foreach (var gameObject in _gameObjects)
+            {
+                if (gameObject.Active)
+                    gameObject.AfterUpdate(Time.DeltaTime);
+            }
+
+            foreach (var entity in _entities)
+                entity.UpdateAnimation(Time.DeltaTime);
         }
 
         #endregion

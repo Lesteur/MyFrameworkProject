@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
+using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
 
@@ -143,7 +144,7 @@ namespace MyFrameworkProject.Engine.Core
             entity.SetScale(1.0f, 1.0f);
             entity.EnableAnimation(0.05f, true);
 
-            var entity2 = new Entity(sprite);
+            var entity2 = new GameObject(sprite);
             entity2.SetPosition(10, 10);
             entity2.SetScale(2.0f, 2.0f);
             entity2.EnableAnimation(0.05f, true);
