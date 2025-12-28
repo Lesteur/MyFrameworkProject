@@ -1,18 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 
 using MyFrameworkProject.Engine.Components;
-using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
 using MyFrameworkProject.Engine.Audio;
-using Microsoft.Xna.Framework.Audio;
+
+using MyFrameworkProject.Assets;
 
 namespace MyFrameworkProject.Engine.Core
 {
     /// <summary>
     /// Main application class that extends MonoGame's Game class.
-    /// Manages the game lifecycle including initialization, updating, rendering, and content loading.
+    /// Manages the game lifecycle including initialization, updating, rendering, and room management.
     /// Provides singleton access and centralizes core engine systems like input, rendering, and game loop.
     /// </summary>
     public class Application : Game
@@ -39,9 +38,9 @@ namespace MyFrameworkProject.Engine.Core
         private GameLoop _gameLoop;
 
         /// <summary>
-        /// The game object that the camera is currently following.
+        /// The currently active game room (scene).
         /// </summary>
-        private GameObject _followingObject = null;
+        private GameRoom _currentRoom;
 
         #endregion
 
@@ -62,6 +61,9 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         public InputManager Input { get; private set; }
 
+        /// <summary>
+        /// Gets the audio manager that handles sound playback.
+        /// </summary>
         public AudioManager Audio { get; private set; }
 
         /// <summary>
@@ -69,6 +71,11 @@ namespace MyFrameworkProject.Engine.Core
         /// Provides access to world and UI cameras.
         /// </summary>
         public Renderer Renderer => _renderer;
+
+        /// <summary>
+        /// Gets the currently active game room.
+        /// </summary>
+        public GameRoom CurrentRoom => _currentRoom;
 
         #endregion
 
@@ -135,41 +142,58 @@ namespace MyFrameworkProject.Engine.Core
         #region MonoGame Lifecycle - LoadContent
 
         /// <summary>
-        /// Loads game content such as textures, sprites, and entities.
+        /// Loads initial game content.
         /// Called once after Initialize and before the first Update call.
-        /// This method contains temporary test code for loading and creating demo entities.
+        /// Override this method to load the initial room or perform initial setup.
         /// </summary>
         protected override void LoadContent()
         {
-            Logger.Info("Loading content...");
+            Logger.Info("Loading initial content...");
 
-            // Loading
-            Texture2D nativeTexture = Content.Load<Texture2D>("spr_jonathan");
-            var texture = new Graphics.Texture(nativeTexture);
-            var sprite = new Sprite(texture, 0, 0, 14);
+            // Override this in derived class to load initial room
+            LoadRoom(new RoomTest());
+        }
 
-            // GameObject creation using ObjectTest
-            var testObject = new ObjectTest(sprite);
-            testObject.SetPosition(10, 10);
-            testObject.SetScale(1.0f, 1.0f);
-            testObject.SetMoveSpeed(150f);
-            testObject.EnableAnimation(0.05f, true);
+        #endregion
 
-            _followingObject = testObject;
+        #region Public Methods - Room Management
 
-            // Game loop registration
-            _gameLoop.AddGameObject(testObject);
+        /// <summary>
+        /// Loads and activates a new game room, unloading the current room if one exists.
+        /// </summary>
+        /// <param name="room">The room to load and activate.</param>
+        public void LoadRoom(GameRoom room)
+        {
+            if (room == null)
+            {
+                Logger.Error("Cannot load null room");
+                return;
+            }
 
-            Texture2D tilesetTexture = Content.Load<Texture2D>("Tileset");
-            var tileset = new Graphics.Texture(tilesetTexture);
-            var tileSprite = new Tileset(tileset, 16, 16);
+            // Unload current room if exists
+            if (_currentRoom != null)
+            {
+                Logger.Info($"Unloading current room: {_currentRoom.GetType().Name}");
+                _currentRoom.Cleanup();
+            }
 
-            var tilemap = new Tilemap(tileSprite, 50, 50);
-            tilemap.Fill(2);
-            _gameLoop.AddTilemap(tilemap);
+            // Load new room
+            _currentRoom = room;
+            _currentRoom.Initialize(_gameLoop, Content);
 
-            SoundEffect soundEffect = Content.Load<SoundEffect>("sfx_chest");
-            Audio.LoadSound("chest", soundEffect);
+            Logger.Info($"Room {room.GetType().Name} is now active");
+        }
+
+        /// <summary>
+        /// Unloads the current room without loading a new one.
+        /// </summary>
+        public void UnloadCurrentRoom()
+        {
+            if (_currentRoom != null)
+            {
+                _currentRoom.Cleanup();
+                _currentRoom = null;
+            }
         }
 
         #endregion
@@ -179,7 +203,7 @@ namespace MyFrameworkProject.Engine.Core
         /// <summary>
         /// Updates the application state and all game systems.
         /// Called once per frame (or at fixed intervals if using fixed time step).
-        /// Handles input processing, time updates, camera movement, and game loop updates.
+        /// Handles input processing, time updates, and game loop updates.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values from MonoGame.</param>
         protected override void Update(GameTime gameTime)
@@ -188,7 +212,10 @@ namespace MyFrameworkProject.Engine.Core
             Audio.Update();
             Time.Update(gameTime);
 
-            _gameLoop.Update();
+            if (_currentRoom != null && _currentRoom.IsLoaded)
+            {
+                _gameLoop.Update();
+            }
 
             base.Update(gameTime);
         }
@@ -205,17 +232,41 @@ namespace MyFrameworkProject.Engine.Core
         /// <param name="gameTime">Provides a snapshot of timing values from MonoGame.</param>
         protected override void Draw(GameTime gameTime)
         {
-            if (_followingObject != null)
+            // Update camera to follow target if set
+            if (_currentRoom?.CameraTarget != null)
             {
-                var position = _followingObject.Position;
-                Renderer.WorldCamera.SetPosition(position.X, position.Y);
+                var x = Math.Clamp(_currentRoom.CameraTarget.Position.X, 0, _currentRoom.Width);
+                var y = Math.Clamp(_currentRoom.CameraTarget.Position.Y, 0, _currentRoom.Height);
+
+                Renderer.WorldCamera.SetPosition(x, y);
             }
 
             _renderer.BeginFrame();
 
-            _gameLoop.Draw(_renderer);
+            if (_currentRoom != null && _currentRoom.IsLoaded)
+            {
+                _gameLoop.Draw(_renderer);
+            }
 
             base.Draw(gameTime);
+        }
+
+        #endregion
+
+        #region MonoGame Lifecycle - Dispose
+
+        /// <summary>
+        /// Disposes resources when the application is closed.
+        /// </summary>
+        /// <param name="disposing">True if disposing managed resources.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                UnloadCurrentRoom();
+            }
+
+            base.Dispose(disposing);
         }
 
         #endregion

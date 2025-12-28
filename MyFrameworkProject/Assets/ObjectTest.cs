@@ -1,7 +1,9 @@
+using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
+using MyFrameworkProject.Engine.Core;
 
-namespace MyFrameworkProject.Engine.Components
+namespace MyFrameworkProject.Assets
 {
     /// <summary>
     /// Test implementation of GameObject for demonstration and prototyping.
@@ -130,7 +132,7 @@ namespace MyFrameworkProject.Engine.Components
         protected virtual void OnConfirmPressed()
         {
             // Example: Log or trigger specific behavior
-            Core.Logger.Info($"ObjectTest {Id}: Confirm pressed at position ({X}, {Y})");
+            Logger.Info($"ObjectTest {Id}: Confirm pressed at position ({X}, {Y})");
         }
 
         /// <summary>
@@ -140,7 +142,7 @@ namespace MyFrameworkProject.Engine.Components
         protected virtual void OnCancelPressed()
         {
             // Example: Deactivate or perform cancel action
-            Core.Logger.Info($"ObjectTest {Id}: Cancel pressed");
+            Logger.Info($"ObjectTest {Id}: Cancel pressed");
         }
 
         /// <summary>
