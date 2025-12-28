@@ -97,6 +97,8 @@ namespace MyFrameworkProject.Engine.Components
             {
                 // Trigger an action on key press (e.g., jump, interact)
                 OnConfirmPressed();
+
+                Audio.PlaySound("chest");
             }
 
             if (Input.IsPressed(InputAction.Cancel))

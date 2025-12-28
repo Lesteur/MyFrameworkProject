@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using MyFrameworkProject.Engine.Audio;
 using MyFrameworkProject.Engine.Components;
+
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
 
@@ -61,11 +63,12 @@ namespace MyFrameworkProject.Engine.Core
         /// Logs the creation of the game loop for debugging purposes.
         /// </summary>
         /// <param name="inputManager">The input manager to provide to all game objects.</param>
-        public GameLoop(InputManager inputManager)
+        public GameLoop(InputManager inputManager, AudioManager audioManager)
         {
             // Initialize static input reference for all GameObjects
             GameObject.InitializeInput(inputManager);
-            
+            GameObject.InitializeAudio(audioManager);
+
             Logger.Info("GameLoop created");
         }
 

@@ -13,6 +13,12 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin sfx_chest.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:sfx_chest.wav
+
 #begin spr_jonathan.png
 /importer:TextureImporter
 /processor:TextureProcessor

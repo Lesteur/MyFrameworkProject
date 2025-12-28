@@ -1,4 +1,5 @@
-﻿using MyFrameworkProject.Engine.Graphics;
+﻿using MyFrameworkProject.Engine.Audio;
+using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
 using System.Threading;
 
@@ -24,6 +25,8 @@ namespace MyFrameworkProject.Engine.Components
         /// Set by the GameLoop during initialization.
         /// </summary>
         protected static InputManager Input { get; private set; }
+
+        protected static AudioManager Audio { get; private set; }
 
         #endregion
 
@@ -88,6 +91,11 @@ namespace MyFrameworkProject.Engine.Components
         internal static void InitializeInput(InputManager inputManager)
         {
             Input = inputManager;
+        }
+
+        internal static void InitializeAudio(AudioManager audioManager)
+        {
+            Audio = audioManager;
         }
 
         #endregion

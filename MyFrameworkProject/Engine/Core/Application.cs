@@ -5,6 +5,8 @@ using System;
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
+using MyFrameworkProject.Engine.Audio;
+using Microsoft.Xna.Framework.Audio;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -59,6 +61,8 @@ namespace MyFrameworkProject.Engine.Core
         /// Gets the input manager that handles all input devices (keyboard, gamepad, mouse).
         /// </summary>
         public InputManager Input { get; private set; }
+
+        public AudioManager Audio { get; private set; }
 
         /// <summary>
         /// Gets the renderer responsible for all 2D sprite rendering operations.
@@ -117,10 +121,11 @@ namespace MyFrameworkProject.Engine.Core
             Logger.Info("Application initialized");
 
             Input = new InputManager();
+            Audio = new AudioManager();
             _renderer = new Renderer(GraphicsDevice);
 
             Time.Initialize();
-            _gameLoop = new GameLoop(Input);
+            _gameLoop = new GameLoop(Input, Audio);
 
             base.Initialize();
         }
@@ -162,6 +167,9 @@ namespace MyFrameworkProject.Engine.Core
             var tilemap = new Tilemap(tileSprite, 50, 50);
             tilemap.Fill(2);
             _gameLoop.AddTilemap(tilemap);
+
+            SoundEffect soundEffect = Content.Load<SoundEffect>("sfx_chest");
+            Audio.LoadSound("chest", soundEffect);
         }
 
         #endregion
@@ -177,6 +185,7 @@ namespace MyFrameworkProject.Engine.Core
         protected override void Update(GameTime gameTime)
         {
             Input.Update();
+            Audio.Update();
             Time.Update(gameTime);
 
             _gameLoop.Update();
