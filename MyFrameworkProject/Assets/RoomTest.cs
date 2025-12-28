@@ -12,7 +12,7 @@ namespace MyFrameworkProject.Assets
     /// </summary>
     public class RoomTest : GameRoom
     {
-        public RoomTest() : base(400, 400)
+        public RoomTest() : base(640, 640)
         {
         }
 

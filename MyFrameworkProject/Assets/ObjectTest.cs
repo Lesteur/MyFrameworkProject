@@ -107,6 +107,8 @@ namespace MyFrameworkProject.Assets
             {
                 // Handle cancel action (e.g., close menu, cancel action)
                 OnCancelPressed();
+
+                Logger.Info("Current position: (" + X + ", " + Y + ")");
             }
         }
 
