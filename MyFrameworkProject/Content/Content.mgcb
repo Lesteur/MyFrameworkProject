@@ -13,13 +13,13 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin sfx_chest.wav
+#begin Audio/sfx_chest.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
-/build:sfx_chest.wav
+/build:Audio/sfx_chest.wav
 
-#begin spr_jonathan.png
+#begin Textures/spr_jonathan.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -29,9 +29,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:spr_jonathan.png
+/build:Textures/spr_jonathan.png
 
-#begin Tileset.png
+#begin Textures/Tileset.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -41,5 +41,17 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Tileset.png
+/build:Textures/Tileset.png
+
+#begin Textures/TilesetMario.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/TilesetMario.png
 

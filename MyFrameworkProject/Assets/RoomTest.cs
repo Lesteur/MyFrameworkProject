@@ -1,14 +1,14 @@
 ﻿using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
-
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Core;
 using MyFrameworkProject.Engine.Graphics;
+using MyFrameworkProject.Engine.Serialization;
 
 namespace MyFrameworkProject.Assets
 {
     /// <summary>
-    /// Test room demonstrating resource loading and entity creation.
+    /// Test room demonstrating Tiled map loading.
     /// </summary>
     public class RoomTest : GameRoom
     {
@@ -18,16 +18,53 @@ namespace MyFrameworkProject.Assets
 
         protected override void Load()
         {
-            Logger.Info("RoomTest: Loading resources...");
+            Logger.Info("RoomTest: Loading Tiled map...");
 
-            // Load and create player sprite
-            Texture2D nativeTexture = Content.Load<Texture2D>("spr_jonathan");
+            // Load the Tiled map with custom object factory
+            LoadTiledMap("JSON/Level", CreateGameObjectFromTiled);
+
+            // Load sound effect
+            SoundEffect soundEffect = Content.Load<SoundEffect>("Audio/sfx_chest");
+            Application.Instance.Audio.LoadSound("chest", soundEffect);
+
+            Logger.Info("RoomTest: All resources loaded successfully");
+        }
+
+        /// <summary>
+        /// Factory method to create GameObjects from Tiled objects.
+        /// </summary>
+        private GameObject CreateGameObjectFromTiled(TiledObject tiledObject)
+        {
+            switch (tiledObject.Type)
+            {
+                case "Player":
+                    return CreatePlayer(tiledObject);
+
+                // Add more cases for different object types
+                // case "Enemy":
+                //     return CreateEnemy(tiledObject);
+                // case "Item":
+                //     return CreateItem(tiledObject);
+
+                default:
+                    Logger.Warning($"Unknown object type: {tiledObject.Type}");
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates a player GameObject from a Tiled object.
+        /// </summary>
+        private GameObject CreatePlayer(TiledObject tiledObject)
+        {
+            // Load player sprite
+            Texture2D nativeTexture = Content.Load<Texture2D>("Textures/spr_jonathan");
             var texture = new Engine.Graphics.Texture(nativeTexture);
             var sprite = new Sprite(texture, 0, 0, 14);
 
             // Create player object
             var player = new ObjectTest(sprite);
-            player.SetPosition(10, 10);
+            player.SetPosition((int)tiledObject.X, (int)tiledObject.Y);
             player.SetScale(1.0f, 1.0f);
             player.SetMoveSpeed(150f);
             player.EnableAnimation(0.05f, true);
@@ -35,29 +72,13 @@ namespace MyFrameworkProject.Assets
             // Set camera to follow player
             CameraTarget = player;
 
-            // Add to game loop
-            GameLoop.AddGameObject(player);
-
-            // Load and create tilemap
-            Texture2D tilesetTexture = Content.Load<Texture2D>("Tileset");
-            var tileset = new Engine.Graphics.Texture(tilesetTexture);
-            var tileSprite = new Tileset(tileset, 16, 16);
-
-            var tilemap = new Tilemap(tileSprite, 50, 50);
-            tilemap.Fill(2);
-            GameLoop.AddTilemap(tilemap);
-
-            // Load sound effect
-            SoundEffect soundEffect = Content.Load<SoundEffect>("sfx_chest");
-            Application.Instance.Audio.LoadSound("chest", soundEffect);
-
-            Logger.Info("RoomTest: All resources loaded successfully");
+            Logger.Info($"Player created at ({tiledObject.X}, {tiledObject.Y})");
+            return player;
         }
 
         protected override void Unload()
         {
             Logger.Info("RoomTest: Custom cleanup logic");
-            // Perform any custom cleanup here
         }
     }
 }

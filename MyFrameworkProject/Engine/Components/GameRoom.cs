@@ -1,7 +1,10 @@
 ﻿using Microsoft.Xna.Framework.Content;
 using MyFrameworkProject.Engine.Core;
+using MyFrameworkProject.Engine.Graphics;
+using MyFrameworkProject.Engine.Serialization;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace MyFrameworkProject.Engine.Components
 {
@@ -27,6 +30,11 @@ namespace MyFrameworkProject.Engine.Components
         /// Resources are automatically disposed when the room is unloaded.
         /// </summary>
         private readonly List<IDisposable> _disposableResources = [];
+
+        /// <summary>
+        /// Tiled loader for processing Tiled map files.
+        /// </summary>
+        private TiledLoader _tiledLoader;
 
         #endregion
 
@@ -85,6 +93,7 @@ namespace MyFrameworkProject.Engine.Components
 
             GameLoop = gameLoop;
             Content = content;
+            _tiledLoader = new TiledLoader(content);
 
             Logger.Info($"Loading room: {GetType().Name}");
 
@@ -143,6 +152,137 @@ namespace MyFrameworkProject.Engine.Components
         protected virtual void Unload()
         {
             // Custom cleanup logic
+        }
+
+        #endregion
+
+        #region Protected Methods - Tiled Loading
+
+        /// <summary>
+        /// Loads a Tiled map and creates all associated tilemaps and objects.
+        /// </summary>
+        /// <param name="jsonPath">Relative path to the Tiled JSON file (without extension).</param>
+        /// <param name="objectFactory">Optional factory function to create GameObjects from Tiled objects.</param>
+        public void LoadTiledMap(string jsonPath, Func<TiledObject, GameObject> objectFactory = null)
+        {
+            var tiledMap = _tiledLoader.LoadMap(jsonPath);
+            if (tiledMap == null)
+            {
+                Logger.Error($"Failed to load Tiled map: {jsonPath}");
+                return;
+            }
+
+            // Load tilesets
+            var tilesets = new Dictionary<int, Tileset>();
+            foreach (var tilesetRef in tiledMap.Tilesets)
+            {
+                var tiledTileset = _tiledLoader.LoadTileset(tilesetRef.Source);
+                if (tiledTileset != null)
+                {
+                    var tileset = _tiledLoader.CreateTileset(tiledTileset);
+                    if (tileset != null)
+                    {
+                        tilesets[tilesetRef.FirstGid] = tileset;
+                    }
+                }
+            }
+
+            // Process layers
+            foreach (var layer in tiledMap.Layers)
+            {
+                if (!layer.Visible)
+                    continue;
+
+                switch (layer.Type)
+                {
+                    case "tilelayer":
+                        ProcessTileLayer(layer, tilesets);
+                        break;
+
+                    case "objectgroup":
+                        ProcessObjectLayer(layer, objectFactory);
+                        break;
+                }
+            }
+
+            Logger.Info($"Tiled map '{jsonPath}' loaded successfully with {tiledMap.Layers.Count} layers");
+        }
+
+        /// <summary>
+        /// Processes a tile layer from a Tiled map.
+        /// </summary>
+        private void ProcessTileLayer(TiledLayer layer, Dictionary<int, Tileset> tilesets)
+        {
+            // For simplicity, use the first tileset
+            // In a more complex scenario, you'd need to handle multiple tilesets per layer
+            Tileset tileset = null;
+            foreach (var ts in tilesets.Values)
+            {
+                tileset = ts;
+                break;
+            }
+
+            if (tileset == null)
+            {
+                Logger.Warning($"No tileset found for layer: {layer.Name}");
+                return;
+            }
+
+            var tilemap = _tiledLoader.CreateTilemap(layer, tileset);
+            if (tilemap != null)
+            {
+                GameLoop.AddTilemap(tilemap);
+            }
+        }
+
+        /// <summary>
+        /// Processes an object layer from a Tiled map.
+        /// </summary>
+        private void ProcessObjectLayer(TiledLayer layer, Func<TiledObject, GameObject> objectFactory)
+        {
+            if (layer.Objects == null || layer.Objects.Count == 0)
+                return;
+
+            foreach (var obj in layer.Objects)
+            {
+                if (!obj.Visible)
+                    continue;
+
+                GameObject gameObject = null;
+
+                // Use custom factory if provided
+                if (objectFactory != null)
+                {
+                    gameObject = objectFactory(obj);
+                }
+                else
+                {
+                    // Use default object creation based on type
+                    gameObject = CreateDefaultGameObject(obj);
+                }
+
+                if (gameObject != null)
+                {
+                    gameObject.SetPosition((int)obj.X, (int)obj.Y);
+                    GameLoop.AddGameObject(gameObject);
+
+                    Logger.Info($"Created object: {obj.Name} ({obj.Type}) at ({obj.X}, {obj.Y})");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a default GameObject from a Tiled object.
+        /// Override this method to provide custom object creation logic.
+        /// </summary>
+        /// <param name="tiledObject">The Tiled object definition.</param>
+        /// <returns>A GameObject instance or null.</returns>
+        protected virtual GameObject CreateDefaultGameObject(TiledObject tiledObject)
+        {
+            // Default implementation returns null
+            // Override in derived classes to create specific objects based on type
+            Logger.Warning($"No factory defined for object type: {tiledObject.Type}");
+            return null;
         }
 
         #endregion

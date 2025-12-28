@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Diagnostics;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -53,7 +53,7 @@ namespace MyFrameworkProject.Engine.Core
         /// <param name="message">The message to log.</param>
         private static void Write(string level, string message)
         {
-            Console.WriteLine($"[{level}] {message}");
+            Debug.WriteLine($"[{level}] {message}");
         }
 
         #endregion
