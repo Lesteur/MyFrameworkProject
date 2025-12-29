@@ -163,23 +163,27 @@ namespace MyFrameworkProject.Engine.Components
         /// </summary>
         /// <param name="jsonPath">Relative path to the Tiled JSON file (without extension).</param>
         /// <param name="objectFactory">Optional factory function to create GameObjects from Tiled objects.</param>
-        public void LoadTiledMap(string jsonPath, Func<TiledObject, GameObject> objectFactory = null)
+        public void LoadTiledMap(string mapAssetName, Func<TiledObject, GameObject> objectFactory = null)
         {
-            var tiledMap = _tiledLoader.LoadMap(jsonPath);
+            // Charger depuis le Content Pipeline (fichier XNB)
+            var tiledMap = Content.Load<TiledMap>(mapAssetName);
+            
             if (tiledMap == null)
             {
-                Logger.Error($"Failed to load Tiled map: {jsonPath}");
+                Logger.Error($"Failed to load Tiled map: {mapAssetName}");
                 return;
             }
 
-            // Load tilesets
+            // Load tilesets (les tilesets sont toujours chargés en JSON pour le moment)
             var tilesets = new Dictionary<int, Tileset>();
+            var tiledLoader = new TiledLoader(Content);
+            
             foreach (var tilesetRef in tiledMap.Tilesets)
             {
-                var tiledTileset = _tiledLoader.LoadTileset(tilesetRef.Source);
+                var tiledTileset = tiledLoader.LoadTileset(tilesetRef.Source);
                 if (tiledTileset != null)
                 {
-                    var tileset = _tiledLoader.CreateTileset(tiledTileset);
+                    var tileset = tiledLoader.CreateTileset(tiledTileset);
                     if (tileset != null)
                     {
                         tilesets[tilesetRef.FirstGid] = tileset;
@@ -205,7 +209,7 @@ namespace MyFrameworkProject.Engine.Components
                 }
             }
 
-            Logger.Info($"Tiled map '{jsonPath}' loaded successfully with {tiledMap.Layers.Count} layers");
+            Logger.Info($"Tiled map '{mapAssetName}' loaded successfully with {tiledMap.Layers.Count} layers");
         }
 
         /// <summary>
