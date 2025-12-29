@@ -19,8 +19,8 @@ namespace MyFrameworkProject.Engine.Components
     {
         #region Fields - Dimensions
 
-        private readonly int _width = width;
-        private readonly int _height = height;
+        private int _width = width;
+        private int _height = height;
 
         #endregion
 
@@ -166,6 +166,10 @@ namespace MyFrameworkProject.Engine.Components
             }
 
             Logger.Info($"Loading Tiled map: {assetPath}");
+
+            // Update room dimensions based on the map size
+            _width = tiledMap.Width * tiledMap.TileWidth;
+            _height = tiledMap.Height * tiledMap.TileHeight;
 
             // Load tilesets referenced by the map
             var tilesets = LoadTilesets(tiledMap);
