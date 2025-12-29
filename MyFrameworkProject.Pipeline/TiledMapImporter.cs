@@ -1,117 +1,83 @@
 using Microsoft.Xna.Framework.Content.Pipeline;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace MyFrameworkProject.Pipeline
 {
     /// <summary>
-    /// Importe les fichiers JSON Tiled dans le Content Pipeline.
+    /// Content importer for Tiled JSON map files (.json, .tmj).
+    /// Loads and converts Tiled map data into the Content Pipeline format.
     /// </summary>
     [ContentImporter(".json", ".tmj", DisplayName = "Tiled Map Importer", DefaultProcessor = "TiledMapProcessor")]
     public class TiledMapImporter : ContentImporter<TiledMapContent>
     {
+        /// <summary>
+        /// Shared JSON serializer options for deserializing Tiled files.
+        /// </summary>
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true
+        };
+
+        /// <summary>
+        /// Imports a Tiled map file into the Content Pipeline.
+        /// </summary>
+        /// <param name="filename">The path to the Tiled map file.</param>
+        /// <param name="context">The importer context for logging and dependency tracking.</param>
+        /// <returns>A TiledMapContent instance containing the imported map data.</returns>
         public override TiledMapContent Import(string filename, ContentImporterContext context)
         {
             context.Logger.LogMessage($"Importing Tiled map: {filename}");
 
-            // Lire le fichier JSON
             string jsonText = File.ReadAllText(filename);
-            
-            // Options pour la désérialisation
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            };
-            
-            var tiledData = JsonSerializer.Deserialize<TiledMapData>(jsonText, options);
+            var mapData = JsonSerializer.Deserialize<TiledMapContent>(jsonText, JsonOptions) ?? throw new InvalidContentException("Failed to deserialize Tiled map data.");
 
-            // Convertir en TiledMapContent
-            var content = new TiledMapContent
-            {
-                Width = tiledData.Width,
-                Height = tiledData.Height,
-                TileWidth = tiledData.TileWidth,
-                TileHeight = tiledData.TileHeight,
-                Orientation = tiledData.Orientation,
-                RenderOrder = tiledData.RenderOrder
-            };
+            // Convert property values from objects to strings
+            NormalizePropertyValues(mapData);
 
-            // Convertir les layers
-            if (tiledData.Layers != null)
+            context.Logger.LogMessage($"Successfully imported Tiled map with {mapData.Layers.Count} layers and {mapData.Tilesets.Count} tilesets");
+            return mapData;
+        }
+
+        /// <summary>
+        /// Normalizes property values by converting object values to strings.
+        /// This ensures consistent serialization in the XNB format.
+        /// </summary>
+        /// <param name="mapData">The map data to normalize.</param>
+        private static void NormalizePropertyValues(TiledMapContent mapData)
+        {
+            if (mapData.Layers == null)
             {
-                foreach (var layer in tiledData.Layers)
+                return;
+            }
+
+            foreach (var layer in mapData.Layers)
+            {
+                if (layer.Objects == null)
                 {
-                    var layerContent = new TiledLayerContent
+                    continue;
+                }
+
+                foreach (var obj in layer.Objects)
+                {
+                    if (obj.Properties == null)
                     {
-                        Id = layer.Id,
-                        Name = layer.Name,
-                        Type = layer.Type,
-                        Visible = layer.Visible,
-                        Opacity = layer.Opacity,
-                        Width = layer.Width,
-                        Height = layer.Height,
-                        Data = layer.Data
-                    };
-
-                    // Convertir les objets si présents
-                    if (layer.Objects != null)
-                    {
-                        layerContent.Objects = new System.Collections.Generic.List<TiledObjectContent>();
-                        foreach (var obj in layer.Objects)
-                        {
-                            var objContent = new TiledObjectContent
-                            {
-                                Id = obj.Id,
-                                Name = obj.Name,
-                                Type = obj.Type,
-                                X = obj.X,
-                                Y = obj.Y,
-                                Width = obj.Width,
-                                Height = obj.Height,
-                                Rotation = obj.Rotation,
-                                Visible = obj.Visible
-                            };
-
-                            // Convertir les propriétés
-                            if (obj.Properties != null)
-                            {
-                                objContent.Properties = new System.Collections.Generic.List<TiledPropertyContent>();
-                                foreach (var prop in obj.Properties)
-                                {
-                                    objContent.Properties.Add(new TiledPropertyContent
-                                    {
-                                        Name = prop.Name,
-                                        Type = prop.Type,
-                                        Value = prop.Value?.ToString()
-                                    });
-                                }
-                            }
-
-                            layerContent.Objects.Add(objContent);
-                        }
+                        continue;
                     }
 
-                    content.Layers.Add(layerContent);
-                }
-            }
-
-            // Convertir les tilesets
-            if (tiledData.Tilesets != null)
-            {
-                foreach (var tileset in tiledData.Tilesets)
-                {
-                    content.Tilesets.Add(new TiledTilesetRefContent
+                    foreach (var prop in obj.Properties)
                     {
-                        FirstGid = tileset.FirstGid,
-                        Source = tileset.Source
-                    });
+                        if (prop.Value != null && prop.Value is not string)
+                        {
+                            prop.Value = prop.Value.ToString();
+                        }
+                    }
                 }
             }
-
-            context.Logger.LogMessage($"Successfully imported Tiled map with {content.Layers.Count} layers");
-            return content;
         }
     }
 }
