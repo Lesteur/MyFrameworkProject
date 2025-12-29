@@ -1,5 +1,5 @@
-using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace MyFrameworkProject.Pipeline
 {
@@ -9,112 +9,112 @@ namespace MyFrameworkProject.Pipeline
     /// </summary>
     internal class TiledMapData
     {
-        [JsonProperty("width")]
+        [JsonPropertyName("width")]
         public int Width { get; set; }
 
-        [JsonProperty("height")]
+        [JsonPropertyName("height")]
         public int Height { get; set; }
 
-        [JsonProperty("tilewidth")]
+        [JsonPropertyName("tilewidth")]
         public int TileWidth { get; set; }
 
-        [JsonProperty("tileheight")]
+        [JsonPropertyName("tileheight")]
         public int TileHeight { get; set; }
 
-        [JsonProperty("orientation")]
+        [JsonPropertyName("orientation")]
         public string Orientation { get; set; }
 
-        [JsonProperty("renderorder")]
+        [JsonPropertyName("renderorder")]
         public string RenderOrder { get; set; }
 
-        [JsonProperty("layers")]
+        [JsonPropertyName("layers")]
         public List<TiledLayerData> Layers { get; set; }
 
-        [JsonProperty("tilesets")]
+        [JsonPropertyName("tilesets")]
         public List<TiledTilesetRefData> Tilesets { get; set; }
     }
 
     internal class TiledLayerData
     {
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public int Id { get; set; }
 
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty("type")]
+        [JsonPropertyName("type")]
         public string Type { get; set; }
 
-        [JsonProperty("visible")]
+        [JsonPropertyName("visible")]
         public bool Visible { get; set; }
 
-        [JsonProperty("opacity")]
+        [JsonPropertyName("opacity")]
         public float Opacity { get; set; }
 
-        [JsonProperty("width")]
+        [JsonPropertyName("width")]
         public int Width { get; set; }
 
-        [JsonProperty("height")]
+        [JsonPropertyName("height")]
         public int Height { get; set; }
 
-        [JsonProperty("data")]
+        [JsonPropertyName("data")]
         public List<int> Data { get; set; }
 
-        [JsonProperty("objects")]
+        [JsonPropertyName("objects")]
         public List<TiledObjectData> Objects { get; set; }
     }
 
     internal class TiledObjectData
     {
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public int Id { get; set; }
 
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty("type")]
+        [JsonPropertyName("type")]
         public string Type { get; set; }
 
-        [JsonProperty("x")]
+        [JsonPropertyName("x")]
         public float X { get; set; }
 
-        [JsonProperty("y")]
+        [JsonPropertyName("y")]
         public float Y { get; set; }
 
-        [JsonProperty("width")]
+        [JsonPropertyName("width")]
         public float Width { get; set; }
 
-        [JsonProperty("height")]
+        [JsonPropertyName("height")]
         public float Height { get; set; }
 
-        [JsonProperty("rotation")]
+        [JsonPropertyName("rotation")]
         public float Rotation { get; set; }
 
-        [JsonProperty("visible")]
+        [JsonPropertyName("visible")]
         public bool Visible { get; set; }
 
-        [JsonProperty("properties")]
+        [JsonPropertyName("properties")]
         public List<TiledPropertyData> Properties { get; set; }
     }
 
     internal class TiledPropertyData
     {
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty("type")]
+        [JsonPropertyName("type")]
         public string Type { get; set; }
 
-        [JsonProperty("value")]
+        [JsonPropertyName("value")]
         public object Value { get; set; }
     }
 
     internal class TiledTilesetRefData
     {
-        [JsonProperty("firstgid")]
+        [JsonPropertyName("firstgid")]
         public int FirstGid { get; set; }
 
-        [JsonProperty("source")]
+        [JsonPropertyName("source")]
         public string Source { get; set; }
     }
 }

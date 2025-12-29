@@ -10,6 +10,7 @@
 
 #-------------------------------- References --------------------------------#
 
+/reference:MyFrameworkProject.Pipeline.dll
 
 #---------------------------------- Content ---------------------------------#
 
@@ -18,6 +19,11 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Audio/sfx_chest.wav
+
+#begin Levels/Level.json
+/importer:TiledMapImporter
+/processor:TiledMapProcessor
+/build:Levels/Level.json
 
 #begin Textures/spr_jonathan.png
 /importer:TextureImporter
@@ -54,4 +60,9 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Textures/TilesetMario.png
+
+#begin Tilesets/TilesetMario.json
+/importer:TiledTilesetImporter
+/processor:TiledTilesetProcessor
+/build:Tilesets/TilesetMario.json
 

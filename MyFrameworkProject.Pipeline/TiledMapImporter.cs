@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework.Content.Pipeline;
-using Newtonsoft.Json;
 using System.IO;
+using System.Text.Json;
 
 namespace MyFrameworkProject.Pipeline
 {
@@ -16,7 +16,16 @@ namespace MyFrameworkProject.Pipeline
 
             // Lire le fichier JSON
             string jsonText = File.ReadAllText(filename);
-            var tiledData = JsonConvert.DeserializeObject<TiledMapData>(jsonText);
+            
+            // Options pour la désérialisation
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            };
+            
+            var tiledData = JsonSerializer.Deserialize<TiledMapData>(jsonText, options);
 
             // Convertir en TiledMapContent
             var content = new TiledMapContent

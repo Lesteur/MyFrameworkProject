@@ -21,7 +21,7 @@ namespace MyFrameworkProject.Assets
             Logger.Info("RoomTest: Loading Tiled map...");
 
             // Load the Tiled map with custom object factory
-            LoadTiledMap("JSON/Level", CreateGameObjectFromTiled);
+            LoadTiledMap("Levels/Level", CreateGameObjectFromTiled);
 
             // Load sound effect
             SoundEffect soundEffect = Content.Load<SoundEffect>("Audio/sfx_chest");
