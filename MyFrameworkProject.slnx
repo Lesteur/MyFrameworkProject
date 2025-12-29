@@ -1,4 +1,3 @@
 <Solution>
-  <Project Path="MyFrameworkProject.Pipeline/MyFrameworkProject.Pipeline.vbproj" Id="947f6943-1fe7-49e0-b823-7dc49f5b58a9" />
   <Project Path="MyFrameworkProject/MyFrameworkProject.csproj" />
 </Solution>

@@ -235,7 +235,7 @@ namespace MyFrameworkProject.Engine.Core
             // Update camera to follow target if set
             if (_currentRoom?.CameraTarget != null)
             {
-                var x = Math.Clamp(_currentRoom.CameraTarget.Position.X, _renderer.WorldCamera.ViewportWidth / 2, _currentRoom.Width - _renderer.WorldCamera.ViewportWidth/2);
+                var x = Math.Clamp(_currentRoom.CameraTarget.Position.X, _renderer.WorldCamera.ViewportWidth / 2, _currentRoom.Width - _renderer.WorldCamera.ViewportWidth / 2);
                 var y = Math.Clamp(_currentRoom.CameraTarget.Position.Y, _renderer.WorldCamera.ViewportHeight / 2, _currentRoom.Height - _renderer.WorldCamera.ViewportHeight / 2);
 
                 Renderer.WorldCamera.SetPosition(x, y);

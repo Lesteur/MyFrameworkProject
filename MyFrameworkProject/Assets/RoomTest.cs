@@ -20,8 +20,8 @@ namespace MyFrameworkProject.Assets
         {
             Logger.Info("RoomTest: Loading Tiled map...");
 
-            // Charger depuis XNB (pas besoin du préfixe "JSON/" ni de l'extension)
-            LoadTiledMap("Maps/Level", CreateGameObjectFromTiled);
+            // Load the Tiled map with custom object factory
+            LoadTiledMap("JSON/Level", CreateGameObjectFromTiled);
 
             // Load sound effect
             SoundEffect soundEffect = Content.Load<SoundEffect>("Audio/sfx_chest");
