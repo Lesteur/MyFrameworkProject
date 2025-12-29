@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 using MyFrameworkProject.Engine.Core;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Serialization;
@@ -18,8 +19,8 @@ namespace MyFrameworkProject.Engine.Components
     {
         #region Fields - Dimensions
 
-        protected readonly int _width = width;
-        protected readonly int _height = height;
+        private readonly int _width = width;
+        private readonly int _height = height;
 
         #endregion
 
@@ -30,11 +31,6 @@ namespace MyFrameworkProject.Engine.Components
         /// Resources are automatically disposed when the room is unloaded.
         /// </summary>
         private readonly List<IDisposable> _disposableResources = [];
-
-        /// <summary>
-        /// Tiled loader for processing Tiled map files.
-        /// </summary>
-        private TiledLoader _tiledLoader;
 
         #endregion
 
@@ -61,7 +57,7 @@ namespace MyFrameworkProject.Engine.Components
         protected ContentManager Content { get; private set; }
 
         /// <summary>
-        /// Gets whether this room is currently active.
+        /// Gets whether this room is currently loaded.
         /// </summary>
         public bool IsLoaded { get; private set; }
 
@@ -69,9 +65,6 @@ namespace MyFrameworkProject.Engine.Components
         /// Gets or sets the game object that the camera should follow in this room.
         /// </summary>
         public GameObject CameraTarget { get; protected set; }
-
-        #endregion
-        #region Constructors
 
         #endregion
 
@@ -93,7 +86,6 @@ namespace MyFrameworkProject.Engine.Components
 
             GameLoop = gameLoop;
             Content = content;
-            _tiledLoader = new TiledLoader(content);
 
             Logger.Info($"Loading room: {GetType().Name}");
 
@@ -156,38 +148,29 @@ namespace MyFrameworkProject.Engine.Components
 
         #endregion
 
-        #region Protected Methods - Tiled Loading
+        #region Protected Methods - Tiled Map Loading
 
         /// <summary>
-        /// Loads a Tiled map and creates all associated tilemaps and objects.
+        /// Loads a Tiled map from the content pipeline and creates all associated tilemaps and game objects.
         /// </summary>
-        /// <param name="jsonPath">Relative path to the Tiled JSON file (without extension).</param>
+        /// <param name="assetPath">Relative path to the Tiled map asset (e.g., "Maps/Level1").</param>
         /// <param name="objectFactory">Optional factory function to create GameObjects from Tiled objects.</param>
-        public void LoadTiledMap(string jsonPath, Func<TiledObject, GameObject> objectFactory = null)
+        protected void LoadTiledMap(string assetPath, Func<TiledObject, GameObject> objectFactory = null)
         {
-            var tiledMap = _tiledLoader.LoadMap(jsonPath);
+            // Load the Tiled map from the content pipeline
+            var tiledMap = Content.Load<TiledMap>(assetPath);
             if (tiledMap == null)
             {
-                Logger.Error($"Failed to load Tiled map: {jsonPath}");
+                Logger.Error($"Failed to load Tiled map: {assetPath}");
                 return;
             }
 
-            // Load tilesets
-            var tilesets = new Dictionary<int, Tileset>();
-            foreach (var tilesetRef in tiledMap.Tilesets)
-            {
-                var tiledTileset = _tiledLoader.LoadTileset(tilesetRef.Source);
-                if (tiledTileset != null)
-                {
-                    var tileset = _tiledLoader.CreateTileset(tiledTileset);
-                    if (tileset != null)
-                    {
-                        tilesets[tilesetRef.FirstGid] = tileset;
-                    }
-                }
-            }
+            Logger.Info($"Loading Tiled map: {assetPath}");
 
-            // Process layers
+            // Load tilesets referenced by the map
+            var tilesets = LoadTilesets(tiledMap);
+
+            // Process all layers in the map
             foreach (var layer in tiledMap.Layers)
             {
                 if (!layer.Visible)
@@ -205,16 +188,101 @@ namespace MyFrameworkProject.Engine.Components
                 }
             }
 
-            Logger.Info($"Tiled map '{jsonPath}' loaded successfully with {tiledMap.Layers.Count} layers");
+            Logger.Info($"Tiled map '{assetPath}' loaded successfully with {tiledMap.Layers.Count} layers");
         }
 
         /// <summary>
-        /// Processes a tile layer from a Tiled map.
+        /// Loads all tilesets referenced by a Tiled map.
         /// </summary>
+        /// <param name="tiledMap">The Tiled map containing tileset references.</param>
+        /// <returns>Dictionary mapping FirstGid to Tileset instances.</returns>
+        private Dictionary<int, Tileset> LoadTilesets(TiledMap tiledMap)
+        {
+            var tilesets = new Dictionary<int, Tileset>();
+
+            foreach (var tilesetRef in tiledMap.Tilesets)
+            {
+                try
+                {
+                    // Extract tileset asset name from source path (remove extension)
+                    string tilesetAssetName = Path.ChangeExtension(tilesetRef.Source, null);
+
+                    // Load the tileset from the content pipeline
+                    var tiledTileset = Content.Load<TiledTileset>(tilesetAssetName);
+                    if (tiledTileset == null)
+                    {
+                        Logger.Warning($"Failed to load tileset: {tilesetAssetName}");
+                        continue;
+                    }
+
+                    // Create the engine tileset from Tiled tileset data
+                    var tileset = CreateTileset(tiledTileset);
+                    if (tileset != null)
+                    {
+                        tilesets[tilesetRef.FirstGid] = tileset;
+                        Logger.Info($"Loaded tileset: {tiledTileset.Name} (FirstGid: {tilesetRef.FirstGid})");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Error loading tileset '{tilesetRef.Source}': {ex.Message}");
+                }
+            }
+
+            return tilesets;
+        }
+
+        /// <summary>
+        /// Creates an engine Tileset from Tiled tileset data.
+        /// </summary>
+        /// <param name="tiledTileset">The Tiled tileset data.</param>
+        /// <returns>A Tileset ready for rendering, or null if creation fails.</returns>
+        private Tileset CreateTileset(TiledTileset tiledTileset)
+        {
+            try
+            {
+                // Extract texture name from image path (remove path and extension)
+                string textureName = Path.GetFileNameWithoutExtension(tiledTileset.Image);
+
+                // Load the texture from the content pipeline
+                Texture2D nativeTexture = Content.Load<Texture2D>($"Textures/{textureName}");
+                var texture = new Graphics.Texture(nativeTexture);
+
+                // Create the tileset with margin and spacing
+                var tileset = new Tileset(
+                    texture,
+                    tiledTileset.TileWidth,
+                    tiledTileset.TileHeight,
+                    tiledTileset.Margin,
+                    tiledTileset.Margin,
+                    tiledTileset.Spacing,
+                    tiledTileset.Spacing
+                );
+
+                return tileset;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to create tileset '{tiledTileset.Name}': {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Processes a tile layer from a Tiled map and adds it to the game loop.
+        /// </summary>
+        /// <param name="layer">The tile layer to process.</param>
+        /// <param name="tilesets">Dictionary of available tilesets.</param>
         private void ProcessTileLayer(TiledLayer layer, Dictionary<int, Tileset> tilesets)
         {
-            // For simplicity, use the first tileset
-            // In a more complex scenario, you'd need to handle multiple tilesets per layer
+            if (layer.Data == null || layer.Data.Count == 0)
+            {
+                Logger.Warning($"Tile layer '{layer.Name}' has no data");
+                return;
+            }
+
+            // Get the first tileset (simple implementation)
+            // For multi-tileset support, you'd need to determine which tileset each tile belongs to
             Tileset tileset = null;
             foreach (var ts in tilesets.Values)
             {
@@ -228,16 +296,42 @@ namespace MyFrameworkProject.Engine.Components
                 return;
             }
 
-            var tilemap = _tiledLoader.CreateTilemap(layer, tileset);
-            if (tilemap != null)
+            // Create the tilemap
+            var tilemap = new Tilemap(tileset, layer.Width, layer.Height);
+
+            // Fill the tilemap with tile data
+            for (int y = 0; y < layer.Height; y++)
             {
-                GameLoop.AddTilemap(tilemap);
+                for (int x = 0; x < layer.Width; x++)
+                {
+                    int index = y * layer.Width + x;
+                    if (index < layer.Data.Count)
+                    {
+                        int tileId = layer.Data[index];
+                        // Tiled uses 0 for empty tiles, subtract 1 for tileset indexing
+                        if (tileId > 0)
+                        {
+                            tilemap.SetTile(x, y, tileId - 1);
+                        }
+                    }
+                }
             }
+
+            // Set tilemap properties
+            tilemap.SetLayerDepth(0.5f);
+            tilemap.SetVisible(layer.Visible);
+
+            // Add to game loop for rendering
+            GameLoop.AddTilemap(tilemap);
+
+            Logger.Info($"Created tilemap: {layer.Name} ({layer.Width}x{layer.Height})");
         }
 
         /// <summary>
-        /// Processes an object layer from a Tiled map.
+        /// Processes an object layer from a Tiled map and creates game objects.
         /// </summary>
+        /// <param name="layer">The object layer to process.</param>
+        /// <param name="objectFactory">Factory function to create GameObjects from Tiled objects.</param>
         private void ProcessObjectLayer(TiledLayer layer, Func<TiledObject, GameObject> objectFactory)
         {
             if (layer.Objects == null || layer.Objects.Count == 0)
@@ -257,7 +351,7 @@ namespace MyFrameworkProject.Engine.Components
                 }
                 else
                 {
-                    // Use default object creation based on type
+                    // Use default object creation
                     gameObject = CreateDefaultGameObject(obj);
                 }
 
@@ -279,8 +373,6 @@ namespace MyFrameworkProject.Engine.Components
         /// <returns>A GameObject instance or null.</returns>
         protected virtual GameObject CreateDefaultGameObject(TiledObject tiledObject)
         {
-            // Default implementation returns null
-            // Override in derived classes to create specific objects based on type
             Logger.Warning($"No factory defined for object type: {tiledObject.Type}");
             return null;
         }

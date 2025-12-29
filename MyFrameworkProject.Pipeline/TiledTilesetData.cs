@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace MyFrameworkProject.Pipeline
 {
     /// <summary>
-    /// Classe pour désérialiser le JSON d'un tileset Tiled (TSX/JSON).
-    /// Correspond exactement au format JSON de Tiled pour les tilesets.
+    /// Class for deserializing Tiled tileset JSON (TSX/JSON format).
+    /// Matches exactly the Tiled tileset JSON structure.
     /// </summary>
     internal class TiledTilesetData
     {
