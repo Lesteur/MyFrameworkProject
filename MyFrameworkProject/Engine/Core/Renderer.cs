@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework.Graphics;
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
+using MyFrameworkProject.Engine.Graphics.Shaders;
+using System.Diagnostics;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -51,6 +53,15 @@ namespace MyFrameworkProject.Engine.Core
 
         #endregion
 
+        #region Fields - Shaders
+
+        /// <summary>
+        /// The shader manager responsible for global and entity-specific shader effects.
+        /// </summary>
+        private ShaderManager _shaderManager;
+
+        #endregion
+
         #region Properties
 
         /// <summary>
@@ -62,6 +73,11 @@ namespace MyFrameworkProject.Engine.Core
         /// Gets the camera used for rendering UI-space elements.
         /// </summary>
         public Camera UICamera => _uiCamera;
+
+        /// <summary>
+        /// Gets the shader manager for managing global and entity-specific shaders.
+        /// </summary>
+        public ShaderManager ShaderManager => _shaderManager;
 
         #endregion
 
@@ -76,6 +92,7 @@ namespace MyFrameworkProject.Engine.Core
         {
             _graphicsDevice = graphicsDevice;
             _spriteBatch = new SpriteBatch(graphicsDevice);
+            _shaderManager = new ShaderManager();
 
             InitializeCameras();
             CalculateScalingMatrix();
@@ -143,17 +160,26 @@ namespace MyFrameworkProject.Engine.Core
         /// Begins the world rendering context with the world camera's transform and scaling matrix applied.
         /// All entities drawn after this call will be rendered in world-space coordinates.
         /// Uses point clamp sampling for pixel-perfect rendering and alpha blending for transparency.
+        /// Applies global world shaders if any are registered.
         /// Must be followed by a call to <see cref="EndWorld"/> when world rendering is complete.
         /// </summary>
         public void BeginWorld()
         {
+            // Determine which shader to use (global shaders if any)
+            Effect activeEffect = null;
+            if (_shaderManager.GlobalWorldShaders.Count > 0)
+            {
+                // Use the first global shader (support for multiple passes can be added later)
+                activeEffect = _shaderManager.GlobalWorldShaders[0].NativeEffect;
+            }
+
             _spriteBatch.Begin(
                 sortMode: SpriteSortMode.Deferred,
                 blendState: BlendState.AlphaBlend,
                 samplerState: SamplerState.PointClamp,
                 depthStencilState: null,
                 rasterizerState: null,
-                effect: null,
+                effect: activeEffect,
                 transformMatrix: _worldCamera.GetTransformMatrix() * _scalingMatrix
             );
         }
@@ -161,6 +187,7 @@ namespace MyFrameworkProject.Engine.Core
         /// <summary>
         /// Draws an entity to the screen using its sprite, position, rotation, scale, and color properties.
         /// The entity is rendered in world-space coordinates with the current world camera transformation applied.
+        /// If the entity has a specific shader assigned, the batch is restarted with that shader.
         /// If the entity has no sprite assigned, the method returns without drawing anything.
         /// </summary>
         /// <param name="entity">The entity to render.</param>
@@ -173,17 +200,54 @@ namespace MyFrameworkProject.Engine.Core
             if (sprite == null)
                 return;
 
-            _spriteBatch.Draw(
-                sprite.Texture.NativeTexture,
-                new Vector2(entity.X, entity.Y),
-                sprite.GetSourceRectangle(entity.FrameNumber),
-                entity.Color,
-                MathHelper.ToRadians(entity.Rotation),
-                sprite.Origin,
-                new Vector2(entity.ScaleX, entity.ScaleY),
-                SpriteEffects.None,
-                entity.LayerDepth
-            );
+            // Check if entity has a specific shader
+            if (entity.Shader != null)
+            {
+                // End current batch and begin new one with entity-specific shader
+                _spriteBatch.End();
+                
+                _spriteBatch.Begin(
+                    sortMode: SpriteSortMode.Deferred,
+                    blendState: BlendState.AlphaBlend,
+                    samplerState: SamplerState.PointClamp,
+                    depthStencilState: null,
+                    rasterizerState: null,
+                    effect: entity.Shader.NativeEffect,
+                    transformMatrix: _worldCamera.GetTransformMatrix() * _scalingMatrix
+                );
+
+                // Draw entity with its specific shader
+                _spriteBatch.Draw(
+                    sprite.Texture.NativeTexture,
+                    new Vector2(entity.X, entity.Y),
+                    sprite.GetSourceRectangle(entity.FrameNumber),
+                    entity.Color,
+                    MathHelper.ToRadians(entity.Rotation),
+                    sprite.Origin,
+                    new Vector2(entity.ScaleX, entity.ScaleY),
+                    SpriteEffects.None,
+                    entity.LayerDepth
+                );
+
+                // Resume normal batch (with global shader if any)
+                _spriteBatch.End();
+                BeginWorld();
+            }
+            else
+            {
+                // Draw entity normally with global shader
+                _spriteBatch.Draw(
+                    sprite.Texture.NativeTexture,
+                    new Vector2(entity.X, entity.Y),
+                    sprite.GetSourceRectangle(entity.FrameNumber),
+                    entity.Color,
+                    MathHelper.ToRadians(entity.Rotation),
+                    sprite.Origin,
+                    new Vector2(entity.ScaleX, entity.ScaleY),
+                    SpriteEffects.None,
+                    entity.LayerDepth
+                );
+            }
         }
 
         /// <summary>
@@ -243,17 +307,26 @@ namespace MyFrameworkProject.Engine.Core
         /// Begins the UI rendering context with the UI camera's transform and scaling matrix applied.
         /// All UI elements drawn after this call will be rendered in UI-space coordinates.
         /// Uses point clamp sampling for pixel-perfect rendering and alpha blending for transparency.
+        /// Applies global UI shaders if any are registered.
         /// Must be followed by a call to <see cref="EndUI"/> when UI rendering is complete.
         /// </summary>
         public void BeginUI()
         {
+            // Determine which shader to use (global UI shaders if any)
+            Effect activeEffect = null;
+            if (_shaderManager.GlobalUIShaders.Count > 0)
+            {
+                // Use the first global UI shader
+                activeEffect = _shaderManager.GlobalUIShaders[0].NativeEffect;
+            }
+
             _spriteBatch.Begin(
                 sortMode: SpriteSortMode.Deferred,
                 blendState: BlendState.AlphaBlend,
                 samplerState: SamplerState.PointClamp,
                 depthStencilState: null,
                 rasterizerState: null,
-                effect: null,
+                effect: activeEffect,
                 transformMatrix: _uiCamera.GetTransformMatrix() * _scalingMatrix
             );
         }

@@ -25,11 +25,29 @@
 /processor:TiledMapProcessor
 /build:Levels/Level.json
 
-#begin Shaders/Outline.fx
+#begin Shaders/SolidColor.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
-/build:Shaders/Outline.fx
+/build:Shaders/SolidColor.fx
+
+#begin Shaders/SolidColor.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/SolidColor.fx
+
+#begin Shaders/SolidColor.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/SolidColor.fx
+
+#begin Shaders/SolidColorSimple.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/SolidColorSimple.fx
 
 #begin Textures/spr_jonathan.png
 /importer:TextureImporter

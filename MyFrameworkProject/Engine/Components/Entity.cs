@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyFrameworkProject.Engine.Graphics;
+using MyFrameworkProject.Engine.Graphics.Shaders;
 using System.Threading;
 
 namespace MyFrameworkProject.Engine.Components
@@ -88,6 +89,16 @@ namespace MyFrameworkProject.Engine.Components
         /// Indicates whether the entity is visible and should be rendered.
         /// </summary>
         private bool _visible = true;
+
+        #endregion
+
+        #region Fields - Shaders
+
+        /// <summary>
+        /// Entity-specific shader effect that overrides global shaders for this entity.
+        /// If null, global shaders will be applied instead.
+        /// </summary>
+        private ShaderEffect _shader;
 
         #endregion
 
@@ -198,6 +209,25 @@ namespace MyFrameworkProject.Engine.Components
         /// Gets the sprite associated with this entity.
         /// </summary>
         public Sprite Sprite => _sprite;
+
+        #endregion
+
+        #region Public Methods - Shaders
+
+        /// <summary>
+        /// Sets an entity-specific shader effect that will be applied when rendering this entity.
+        /// This shader overrides any global shaders for this entity.
+        /// </summary>
+        /// <param name="shader">The shader effect to apply, or null to use global shaders.</param>
+        public void SetShader(ShaderEffect shader)
+        {
+            _shader = shader;
+        }
+
+        /// <summary>
+        /// Gets the entity-specific shader effect, if any.
+        /// </summary>
+        public ShaderEffect Shader => _shader;
 
         #endregion
 
