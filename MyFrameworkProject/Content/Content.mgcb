@@ -25,6 +25,12 @@
 /processor:TiledMapProcessor
 /build:Levels/Level.json
 
+#begin Shaders/Outline.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/Outline.fx
+
 #begin Textures/spr_jonathan.png
 /importer:TextureImporter
 /processor:TextureProcessor

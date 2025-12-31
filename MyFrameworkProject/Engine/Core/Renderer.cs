@@ -63,11 +63,6 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         public Camera UICamera => _uiCamera;
 
-        /// <summary>
-        /// Obtient le gestionnaire de shaders.
-        /// </summary>
-        public ShaderManager ShaderManager => _shaderManager;
-
         #endregion
 
         #region Constructors

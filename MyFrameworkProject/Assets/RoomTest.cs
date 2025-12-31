@@ -1,5 +1,7 @@
-﻿using Microsoft.Xna.Framework.Audio;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
+
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Core;
 using MyFrameworkProject.Engine.Graphics;
@@ -26,6 +28,8 @@ namespace MyFrameworkProject.Assets
             // Load sound effect
             SoundEffect soundEffect = Content.Load<SoundEffect>("Audio/sfx_chest");
             Application.Instance.Audio.LoadSound("chest", soundEffect);
+
+            Effect outlineEffect = Content.Load<Effect>("Shaders/Outline");
 
             Logger.Info("RoomTest: All resources loaded successfully");
         }
