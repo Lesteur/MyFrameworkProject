@@ -37,17 +37,11 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/SolidColor.fx
 
-#begin Shaders/SolidColor.fx
+#begin Shaders/Wave.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
-/build:Shaders/SolidColor.fx
-
-#begin Shaders/SolidColorSimple.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Shaders/SolidColorSimple.fx
+/build:Shaders/Wave.fx
 
 #begin Textures/spr_jonathan.png
 /importer:TextureImporter

@@ -27,20 +27,11 @@ namespace MyFrameworkProject.Assets
             SoundEffect soundEffect = Content.Load<SoundEffect>("Audio/sfx_chest");
             Application.Instance.Audio.LoadSound("chest", soundEffect);
 
-            // Load and register shaders
-            Effect solidColorEffect = Content.Load<Effect>("Shaders/SolidColorSimple");
-            var solidColorShader = new ShaderEffect(solidColorEffect);
-            // Configure shader parameters
-            // solidColorShader.SetParameter("SolidColor", new Vector4(1.0f, 0.0f, 1.0f, 1.0f)); // Magenta
-            // solidColorShader.SetParameter("AlphaThreshold", 0.1f);
-            // Register the shader
-            Application.Instance.Renderer.ShaderManager.RegisterShader("solidcolor", solidColorShader);
-
             // Load the Tiled map from the content pipeline with a custom object factory
             LoadTiledMap("Levels/Level", CreateGameObjectFromTiled);
 
             // Example: Apply as global shader to all entities
-            // Application.Instance.Renderer.ShaderManager.AddGlobalWorldShader("solidcolor");
+            Application.Instance.Renderer.ShaderManager.AddGlobalWorldShader("wave");
 
             Logger.Info("RoomTest: All resources loaded successfully");
         }
@@ -87,15 +78,6 @@ namespace MyFrameworkProject.Assets
             player.SetScale(1.0f, 1.0f);
             player.SetMoveSpeed(150f);
             player.EnableAnimation(0.05f, true);
-
-            // Apply solid color shader to the player
-            var solidColorShader = Application.Instance.Renderer.ShaderManager.GetShader("solidcolor");
-            if (solidColorShader != null)
-            {
-                // Change color to cyan for the player
-                //solidColorShader.SetParameter("SolidColor", new Vector4(0.0f, 1.0f, 1.0f, 1.0f));
-                player.SetShader(solidColorShader);
-            }
 
             // Set camera to follow the player
             CameraTarget = player;

@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Graphics.Shaders;
-using System.Diagnostics;
 
 namespace MyFrameworkProject.Engine.Core
 {
