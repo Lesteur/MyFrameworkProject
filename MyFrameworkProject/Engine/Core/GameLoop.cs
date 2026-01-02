@@ -29,19 +29,9 @@ namespace MyFrameworkProject.Engine.Core
         private readonly List<Tilemap> _tilemaps = [];
 
         /// <summary>
-        /// Pending entities to add, processed at the end of the frame to avoid collection modification during iteration.
-        /// </summary>
-        private readonly List<Entity> _entitiesToAdd = [];
-
-        /// <summary>
         /// Pending game objects to add, processed at the end of the frame to avoid collection modification during iteration.
         /// </summary>
         private readonly List<GameObject> _gameObjectsToAdd = [];
-
-        /// <summary>
-        /// Pending entities to remove, processed at the end of the frame to avoid collection modification during iteration.
-        /// </summary>
-        private readonly HashSet<Entity> _entitiesToRemove = [];
 
         /// <summary>
         /// Pending game objects to remove, processed at the end of the frame to avoid collection modification during iteration.
@@ -69,28 +59,6 @@ namespace MyFrameworkProject.Engine.Core
         #endregion
 
         #region Public Methods - Entity Management
-
-        /// <summary>
-        /// Adds an entity to the game loop.
-        /// The entity will be updated and rendered every frame until removed.
-        /// Entities are processed in the order they were added.
-        /// Addition is deferred until the end of the current frame.
-        /// </summary>
-        /// <param name="entity">The entity to add to the game loop.</param>
-        public void AddEntity(Entity entity)
-        {
-            _entitiesToAdd.Add(entity);
-        }
-
-        /// <summary>
-        /// Removes an entity from the game loop.
-        /// Removal is deferred until the end of the current frame to avoid collection modification during iteration.
-        /// </summary>
-        /// <param name="entity">The entity to remove from the game loop.</param>
-        public void RemoveEntity(Entity entity)
-        {
-            _entitiesToRemove.Add(entity);
-        }
 
         /// <summary>
         /// Adds a game object to the game loop.
