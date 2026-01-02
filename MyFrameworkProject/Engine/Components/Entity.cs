@@ -395,7 +395,7 @@ namespace MyFrameworkProject.Engine.Components
 
         #region Public Methods - Animation
 
-        public void Draw(SpriteBatch spriteBatch)
+        public virtual void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(
                 _sprite.Texture.NativeTexture,

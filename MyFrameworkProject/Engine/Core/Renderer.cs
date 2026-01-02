@@ -164,13 +164,7 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         public void BeginWorld()
         {
-            // Determine which shader to use (global shaders if any)
-            Effect activeEffect = null;
-            if (_shaderManager.GlobalWorldShaders.Count > 0)
-            {
-                // Use the first global shader (support for multiple passes can be added later)
-                activeEffect = _shaderManager.GlobalWorldShaders[0].NativeEffect;
-            }
+            Effect activeEffect = GetActiveWorldShader();
 
             _spriteBatch.Begin(
                 sortMode: SpriteSortMode.Deferred,
@@ -184,63 +178,65 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         /// <summary>
-        /// Draws an entity to the screen using its sprite, position, rotation, scale, and color properties.
+        /// Draws an entity to the screen using its inherited rendering properties.
         /// The entity is rendered in world-space coordinates with the current world camera transformation applied.
         /// If the entity has a specific shader assigned, the batch is restarted with that shader.
-        /// If the entity has no sprite assigned, the method returns without drawing anything.
+        /// Automatically handles visibility checks and shader management.
         /// </summary>
-        /// <param name="entity">The entity to render.</param>
+        /// <param name="entity">The entity to render. Can be any type derived from Entity (GameObject, Tilemap, etc.).</param>
         public void DrawEntity(Entity entity)
         {
             if (entity == null || !entity.Visible)
                 return;
 
-            var sprite = entity.Sprite;
-            if (sprite == null)
-                return;
-
-            // Check if entity has a specific shader
+            // Handle entity-specific shader if present
             if (entity.Shader != null)
             {
-                // End current batch and begin new one with entity-specific shader
-                _spriteBatch.End();
-                
-                _spriteBatch.Begin(
-                    sortMode: SpriteSortMode.Deferred,
-                    blendState: BlendState.AlphaBlend,
-                    samplerState: SamplerState.PointClamp,
-                    depthStencilState: null,
-                    rasterizerState: null,
-                    effect: entity.Shader.NativeEffect,
-                    transformMatrix: _worldCamera.GetTransformMatrix() * _scalingMatrix
-                );
-
-                // Draw entity with its specific shader
-                entity.Draw(_spriteBatch);
-
-                // Resume normal batch (with global shader if any)
-                _spriteBatch.End();
-                BeginWorld();
+                DrawEntityWithShader(entity);
             }
             else
             {
-                // Draw entity normally with global shader
+                // Draw entity with current batch (uses global shader if any)
                 entity.Draw(_spriteBatch);
             }
         }
 
         /// <summary>
-        /// Draws a tilemap to the screen by iterating over its grid and rendering each
-        /// visible tile using the associated tileset texture.
-        /// The tilemap is rendered in world-space coordinates with the current world camera transformation applied.
+        /// Draws an entity with its specific shader by temporarily switching the sprite batch context.
+        /// </summary>
+        /// <param name="entity">The entity with a custom shader to render.</param>
+        private void DrawEntityWithShader(Entity entity)
+        {
+            // End current batch
+            _spriteBatch.End();
+
+            // Begin new batch with entity-specific shader
+            _spriteBatch.Begin(
+                sortMode: SpriteSortMode.Deferred,
+                blendState: BlendState.AlphaBlend,
+                samplerState: SamplerState.PointClamp,
+                depthStencilState: null,
+                rasterizerState: null,
+                effect: entity.Shader.NativeEffect,
+                transformMatrix: _worldCamera.GetTransformMatrix() * _scalingMatrix
+            );
+
+            // Draw entity with its specific shader
+            entity.Draw(_spriteBatch);
+
+            // Resume normal batch with global shader
+            _spriteBatch.End();
+            BeginWorld();
+        }
+
+        /// <summary>
+        /// Draws a tilemap to the screen. This is a convenience method that calls DrawEntity internally.
+        /// Tilemaps now inherit from Entity and use the same rendering pipeline.
         /// </summary>
         /// <param name="tilemap">The tilemap to render.</param>
         public void DrawTilemap(Tilemap tilemap)
         {
-            if (tilemap == null || !tilemap.Visible)
-                return;
-
-            tilemap.Draw(_spriteBatch);
+            DrawEntity(tilemap);
         }
 
         /// <summary>
@@ -265,13 +261,7 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         public void BeginUI()
         {
-            // Determine which shader to use (global UI shaders if any)
-            Effect activeEffect = null;
-            if (_shaderManager.GlobalUIShaders.Count > 0)
-            {
-                // Use the first global UI shader
-                activeEffect = _shaderManager.GlobalUIShaders[0].NativeEffect;
-            }
+            Effect activeEffect = GetActiveUIShader();
 
             _spriteBatch.Begin(
                 sortMode: SpriteSortMode.Deferred,
@@ -291,6 +281,32 @@ namespace MyFrameworkProject.Engine.Core
         public void EndUI()
         {
             _spriteBatch.End();
+        }
+
+        #endregion
+
+        #region Private Methods - Shader Management
+
+        /// <summary>
+        /// Gets the active shader for world rendering. Returns null if no global world shaders are registered.
+        /// </summary>
+        /// <returns>The active world shader effect, or null.</returns>
+        private Effect GetActiveWorldShader()
+        {
+            return _shaderManager.GlobalWorldShaders.Count > 0
+                ? _shaderManager.GlobalWorldShaders[0].NativeEffect
+                : null;
+        }
+
+        /// <summary>
+        /// Gets the active shader for UI rendering. Returns null if no global UI shaders are registered.
+        /// </summary>
+        /// <returns>The active UI shader effect, or null.</returns>
+        private Effect GetActiveUIShader()
+        {
+            return _shaderManager.GlobalUIShaders.Count > 0
+                ? _shaderManager.GlobalUIShaders[0].NativeEffect
+                : null;
         }
 
         #endregion
