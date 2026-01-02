@@ -23,12 +23,6 @@ namespace MyFrameworkProject.Engine.Core
         private readonly List<GameObject> _gameObjects = [];
 
         /// <summary>
-        /// The collection of all entities currently managed by the game loop.
-        /// Entities are updated and rendered in the order they were added.
-        /// </summary>
-        private readonly List<Entity> _entities = [];
-
-        /// <summary>
         /// The collection of all tilemaps currently managed by the game loop.
         /// Tilemaps are rendered in the world-space context.
         /// </summary>
@@ -99,16 +93,6 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         /// <summary>
-        /// Clears all entities from the game loop immediately.
-        /// </summary>
-        public void ClearEntities()
-        {
-            _entities.Clear();
-            _entitiesToAdd.Clear();
-            _entitiesToRemove.Clear();
-        }
-
-        /// <summary>
         /// Adds a game object to the game loop.
         /// Game objects are also added to the entity list for rendering.
         /// Addition is deferred until the end of the current frame.
@@ -117,7 +101,6 @@ namespace MyFrameworkProject.Engine.Core
         public void AddGameObject(GameObject gameObject)
         {
             _gameObjectsToAdd.Add(gameObject);
-            _entitiesToAdd.Add(gameObject);
         }
 
         /// <summary>
@@ -128,7 +111,6 @@ namespace MyFrameworkProject.Engine.Core
         public void RemoveGameObject(GameObject gameObject)
         {
             _gameObjectsToRemove.Add(gameObject);
-            _entitiesToRemove.Add(gameObject);
         }
 
         /// <summary>
@@ -136,9 +118,6 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         public void ClearGameObjects()
         {
-            foreach (var gameObject in _gameObjects)
-                _entities.Remove(gameObject);
-
             _gameObjects.Clear();
             _gameObjectsToAdd.Clear();
             _gameObjectsToRemove.Clear();
@@ -163,28 +142,12 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         private void ProcessPendingOperations()
         {
-            // Process removals first
-            if (_entitiesToRemove.Count > 0)
-            {
-                foreach (var entity in _entitiesToRemove)
-                    _entities.Remove(entity);
-                
-                _entitiesToRemove.Clear();
-            }
-
             if (_gameObjectsToRemove.Count > 0)
             {
                 foreach (var gameObject in _gameObjectsToRemove)
                     _gameObjects.Remove(gameObject);
                 
                 _gameObjectsToRemove.Clear();
-            }
-
-            // Process additions
-            if (_entitiesToAdd.Count > 0)
-            {
-                _entities.AddRange(_entitiesToAdd);
-                _entitiesToAdd.Clear();
             }
 
             if (_gameObjectsToAdd.Count > 0)
@@ -218,13 +181,8 @@ namespace MyFrameworkProject.Engine.Core
                 gameObject.BeforeUpdate(deltaTime);
                 gameObject.Update(deltaTime);
                 gameObject.AfterUpdate(deltaTime);
-            }
 
-            // Update animations for all entities in a single pass
-            int entityCount = _entities.Count;
-            for (int i = 0; i < entityCount; i++)
-            {
-                _entities[i].UpdateAnimation(deltaTime);
+                gameObject.UpdateAnimation(deltaTime);
             }
 
             // Process pending add/remove operations
@@ -253,11 +211,11 @@ namespace MyFrameworkProject.Engine.Core
                 renderer.DrawTilemap(_tilemaps[i]);
             }
 
-            // Draw entities
-            int entityCount = _entities.Count;
-            for (int i = 0; i < entityCount; i++)
+            // Draw game objects
+            int gameObjectCount = _gameObjects.Count;
+            for (int i = 0; i < gameObjectCount; i++)
             {
-                renderer.DrawEntity(_entities[i]);
+                renderer.DrawEntity(_gameObjects[i]);
             }
 
             renderer.EndWorld();

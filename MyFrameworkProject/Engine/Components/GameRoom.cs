@@ -112,7 +112,6 @@ namespace MyFrameworkProject.Engine.Components
 
             // Clear all entities and game objects from the game loop
             GameLoop.ClearGameObjects();
-            GameLoop.ClearEntities();
 
             // Dispose all tracked resources
             foreach (var resource in _disposableResources)

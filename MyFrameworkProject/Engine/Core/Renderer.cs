@@ -216,17 +216,7 @@ namespace MyFrameworkProject.Engine.Core
                 );
 
                 // Draw entity with its specific shader
-                _spriteBatch.Draw(
-                    sprite.Texture.NativeTexture,
-                    new Vector2(entity.X, entity.Y),
-                    sprite.GetSourceRectangle(entity.FrameNumber),
-                    entity.Color,
-                    MathHelper.ToRadians(entity.Rotation),
-                    sprite.Origin,
-                    new Vector2(entity.ScaleX, entity.ScaleY),
-                    SpriteEffects.None,
-                    entity.LayerDepth
-                );
+                entity.Draw(_spriteBatch);
 
                 // Resume normal batch (with global shader if any)
                 _spriteBatch.End();
@@ -235,17 +225,7 @@ namespace MyFrameworkProject.Engine.Core
             else
             {
                 // Draw entity normally with global shader
-                _spriteBatch.Draw(
-                    sprite.Texture.NativeTexture,
-                    new Vector2(entity.X, entity.Y),
-                    sprite.GetSourceRectangle(entity.FrameNumber),
-                    entity.Color,
-                    MathHelper.ToRadians(entity.Rotation),
-                    sprite.Origin,
-                    new Vector2(entity.ScaleX, entity.ScaleY),
-                    SpriteEffects.None,
-                    entity.LayerDepth
-                );
+                entity.Draw(_spriteBatch);
             }
         }
 
@@ -260,33 +240,7 @@ namespace MyFrameworkProject.Engine.Core
             if (tilemap == null || !tilemap.Visible)
                 return;
 
-            for (int y = 0; y < tilemap.GridHeight; y++)
-            {
-                for (int x = 0; x < tilemap.GridWidth; x++)
-                {
-                    int tileIndex = tilemap.GetTile(x, y);
-                    if (tileIndex < 0)
-                        continue;
-
-                    Rectangle sourceRect = tilemap.GetTileSourceRectangle(tileIndex);
-                    Vector2 position = new(
-                        tilemap.X + x * sourceRect.Width,
-                        tilemap.Y + y * sourceRect.Height
-                    );
-
-                    _spriteBatch.Draw(
-                        tilemap.Tileset.Texture.NativeTexture,
-                        position,
-                        sourceRect,
-                        tilemap.Color,
-                        0f,
-                        Vector2.Zero,
-                        1f,
-                        SpriteEffects.None,
-                        tilemap.LayerDepth
-                    );
-                }
-            }
+            tilemap.Draw(_spriteBatch);
         }
 
         /// <summary>

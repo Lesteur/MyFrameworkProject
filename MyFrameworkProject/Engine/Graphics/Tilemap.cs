@@ -1,4 +1,6 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MyFrameworkProject.Engine.Serialization;
 
 namespace MyFrameworkProject.Engine.Graphics
 {
@@ -274,6 +276,37 @@ namespace MyFrameworkProject.Engine.Graphics
         }
 
         #endregion
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            for (int y = 0; y < _gridHeight; y++)
+            {
+                for (int x = 0; x < _gridWidth; x++)
+                {
+                    int tileIndex = GetTile(x, y);
+                    if (tileIndex < 0)
+                        continue;
+
+                    Rectangle sourceRect = GetTileSourceRectangle(tileIndex);
+                    Vector2 position = new(
+                        _x + x * sourceRect.Width,
+                        _y + y * sourceRect.Height
+                    );
+
+                    spriteBatch.Draw(
+                        _tileset.Texture.NativeTexture,
+                        position,
+                        sourceRect,
+                        _color,
+                        0f,
+                        Vector2.Zero,
+                        1f,
+                        SpriteEffects.None,
+                        _layerDepth
+                    );
+                }
+            }
+        }
 
         #region Public Methods - Position
 

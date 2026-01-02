@@ -10,7 +10,7 @@ namespace MyFrameworkProject.Engine.Components
     /// Represents a game entity with sprite rendering and animation capabilities.
     /// Provides position, rotation, scale, and color manipulation along with frame-based animation support.
     /// </summary>
-    public class Entity
+    public abstract class Entity
     {
         #region Static Fields
 
@@ -394,6 +394,21 @@ namespace MyFrameworkProject.Engine.Components
         #endregion
 
         #region Public Methods - Animation
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Draw(
+                _sprite.Texture.NativeTexture,
+                new Vector2(_x, _y),
+                _sprite.GetSourceRectangle(_frameNumber),
+                _color,
+                MathHelper.ToRadians(_rotation),
+                new Vector2(_sprite.XOrigin, _sprite.YOrigin),
+                new Vector2(_scaleX, _scaleY),
+                _spriteEffects,
+                _layerDepth
+            );
+        }
 
         /// <summary>
         /// Enables animation with the specified frame duration and looping behavior.
