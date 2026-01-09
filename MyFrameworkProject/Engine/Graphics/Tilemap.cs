@@ -36,7 +36,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// 2D array storing tile indices. -1 represents an empty tile.
         /// </summary>
-        private int[,] _tileData;
+        private readonly int[,] _tileData;
 
         #endregion
 
@@ -250,7 +250,7 @@ namespace MyFrameworkProject.Engine.Graphics
                         0f,
                         Vector2.Zero,
                         1f,
-                        SpriteEffects.None,
+                        SpriteEffects,
                         LayerDepth
                     );
                 }

@@ -57,6 +57,11 @@ namespace MyFrameworkProject.Engine.Core
         #region Properties - Core Systems
 
         /// <summary>
+        /// Gets the main game loop that handles updates and rendering.
+        /// </summary>
+        public GameLoop GameLoop => _gameLoop;
+
+        /// <summary>
         /// Gets the input manager that handles all input devices (keyboard, gamepad, mouse).
         /// </summary>
         public InputManager Input { get; private set; }

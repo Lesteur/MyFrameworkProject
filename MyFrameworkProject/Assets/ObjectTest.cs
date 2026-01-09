@@ -1,7 +1,9 @@
 using MyFrameworkProject.Engine.Components;
+using MyFrameworkProject.Engine.Core;
+using MyFrameworkProject.Engine.Core.Coroutines;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
-using MyFrameworkProject.Engine.Core;
+using System.Collections;
 
 namespace MyFrameworkProject.Assets
 {
@@ -76,11 +78,13 @@ namespace MyFrameworkProject.Assets
             if (Input.IsDown(InputAction.Left))
             {
                 _x -= (int)(_moveSpeed * deltaTime);
+                SetScaleX(-1); // Flip sprite to face left
             }
 
             if (Input.IsDown(InputAction.Right))
             {
                 _x += (int)(_moveSpeed * deltaTime);
+                SetScaleX(1); // Face right
             }
 
             // Handle vertical movement
@@ -120,7 +124,7 @@ namespace MyFrameworkProject.Assets
         public override void AfterUpdate(float deltaTime)
         {
             // Example: Apply physics constraints, clamp positions, etc.
-            ClampPosition();
+            // ClampPosition();
         }
 
         #endregion
@@ -135,6 +139,7 @@ namespace MyFrameworkProject.Assets
         {
             // Example: Log or trigger specific behavior
             Logger.Info($"ObjectTest {Id}: Confirm pressed at position ({X}, {Y})");
+            StartCoroutine(MyCoroutine());
         }
 
         /// <summary>
@@ -147,18 +152,18 @@ namespace MyFrameworkProject.Assets
             Logger.Info($"ObjectTest {Id}: Cancel pressed");
         }
 
-        /// <summary>
-        /// Clamps the object's position to screen boundaries.
-        /// This is a demonstration of post-update position constraints.
-        /// </summary>
-        private void ClampPosition()
+        private IEnumerator MyCoroutine()
         {
-            // Example boundary clamping (adjust based on your game's needs)
-            // Uncomment and modify as needed:
-            // if (_x < 0) _x = 0;
-            // if (_y < 0) _y = 0;
-            // if (_x > maxX) _x = maxX;
-            // if (_y > maxY) _y = maxY;
+            Logger.Info("Coroutine started");
+
+            yield return new WaitForSeconds(2.0f);
+            Logger.Info("2 seconds passed");
+
+            yield return new WaitForNextFrame();
+            Logger.Info("Next frame");
+
+            yield return new WaitUntil(() => Input.IsPressed(InputAction.Down));
+            Logger.Info("Space pressed");
         }
 
         #endregion

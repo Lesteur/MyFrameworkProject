@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Graphics.Shaders;
+using System.Collections.Generic;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -23,6 +24,10 @@ namespace MyFrameworkProject.Engine.Core
         /// The sprite batch used for efficient 2D sprite rendering.
         /// </summary>
         private readonly SpriteBatch _spriteBatch;
+
+        private readonly Dictionary<string, Graphics.Texture> _namedTextures;
+        private readonly Dictionary<string, Sprite> _namedSprites;
+        private readonly Dictionary<string, Tileset> _namedTilesets;
 
         #endregion
 
@@ -57,7 +62,7 @@ namespace MyFrameworkProject.Engine.Core
         /// <summary>
         /// The shader manager responsible for global and entity-specific shader effects.
         /// </summary>
-        private ShaderManager _shaderManager;
+        private readonly ShaderManager _shaderManager;
 
         #endregion
 
@@ -139,6 +144,46 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         #endregion
+
+        public bool RegisterTexture(string name, Graphics.Texture texture)
+        {
+            return _namedTextures.TryAdd(name, texture);
+        }
+
+        public Graphics.Texture GetTexture(string name)
+        {
+            _namedTextures.TryGetValue(name, out Graphics.Texture? texture);
+            return texture;
+        }
+
+        public bool RegisterSprite(string name, Sprite sprite)
+        {
+            return _namedSprites.TryAdd(name, sprite);
+        }
+
+        public Sprite GetSprite(string name)
+        {
+            _namedSprites.TryGetValue(name, out Sprite sprite);
+            return sprite;
+        }
+
+        public bool RegisterTileset(string name, Tileset tileset)
+        {
+            return _namedTilesets.TryAdd(name, tileset);
+        }
+
+        public Tileset GetTileset(string name)
+        {
+            _namedTilesets.TryGetValue(name, out Tileset tileset);
+            return tileset;
+        }
+
+        public void ClearResources()
+        {
+            _namedTextures.Clear();
+            _namedSprites.Clear();
+            _namedTilesets.Clear();
+        }
 
         #region Public Methods - Frame Management
 

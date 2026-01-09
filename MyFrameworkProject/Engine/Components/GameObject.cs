@@ -1,7 +1,9 @@
 ﻿using MyFrameworkProject.Engine.Audio;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
+using MyFrameworkProject.Engine.Core.Coroutines;
 using System.Threading;
+using System.Collections;
 
 namespace MyFrameworkProject.Engine.Components
 {
@@ -27,6 +29,8 @@ namespace MyFrameworkProject.Engine.Components
         protected static InputManager Input { get; private set; }
 
         protected static AudioManager Audio { get; private set; }
+
+        protected static CoroutineManager Coroutines { get; private set; }
 
         #endregion
 
@@ -98,6 +102,11 @@ namespace MyFrameworkProject.Engine.Components
             Audio = audioManager;
         }
 
+        internal static void InitializeCoroutines(CoroutineManager coroutineManager)
+        {
+            Coroutines = coroutineManager;
+        }
+
         #endregion
 
         #region Public Methods - State
@@ -110,6 +119,33 @@ namespace MyFrameworkProject.Engine.Components
         public void SetActive(bool active)
         {
             _active = active;
+        }
+
+        /// <summary>
+        /// Starts a new coroutine from an IEnumerator.
+        /// </summary>
+        /// <param name="enumerator">The enumerator that defines the coroutine behavior.</param>
+        /// <returns>The created coroutine instance that can be used to control execution.</returns>
+        public Coroutine StartCoroutine(IEnumerator enumerator)
+        {
+            return Coroutines.StartCoroutine(enumerator);
+        }
+
+        /// <summary>
+        /// Stops a running coroutine.
+        /// </summary>
+        /// <param name="coroutine">The coroutine to stop.</param>
+        public void StopCoroutine(Coroutine coroutine)
+        {
+            Coroutines.StopCoroutine(coroutine);
+        }
+
+        /// <summary>
+        /// Stops all running coroutines immediately.
+        /// </summary>
+        public void StopAllCoroutines()
+        {
+            Coroutines.StopAllCoroutines();
         }
 
         #endregion

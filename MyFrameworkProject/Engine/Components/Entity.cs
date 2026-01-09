@@ -296,8 +296,17 @@ namespace MyFrameworkProject.Engine.Components
         /// <param name="scaleX">The new horizontal scale factor.</param>
         public void SetScaleX(float scaleX)
         {
-            if (scaleX > 0f)
+            if (scaleX < 0f)
+            {
+                _scaleX = -scaleX;
+                _spriteEffects = SpriteEffects.FlipHorizontally;
+
+            }
+            else
+            {
                 _scaleX = scaleX;
+                _spriteEffects = SpriteEffects.None;
+            }
         }
 
         /// <summary>
@@ -306,8 +315,7 @@ namespace MyFrameworkProject.Engine.Components
         /// <param name="scaleY">The new vertical scale factor.</param>
         public void SetScaleY(float scaleY)
         {
-            if (scaleY > 0f)
-                _scaleY = scaleY;
+            _scaleY = scaleY;
         }
 
         /// <summary>
@@ -318,10 +326,8 @@ namespace MyFrameworkProject.Engine.Components
         /// <param name="scaleY">The new vertical scale factor.</param>
         public void SetScale(float scaleX, float scaleY)
         {
-            if (scaleX > 0f)
-                _scaleX = scaleX;
-            if (scaleY > 0f)
-                _scaleY = scaleY;
+            SetScaleX(scaleX);
+            SetScaleY(scaleY);
         }
 
         /// <summary>

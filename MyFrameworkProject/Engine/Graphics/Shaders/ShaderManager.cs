@@ -133,6 +133,19 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
             return false;
         }
 
+        public void ClearAllNamedShaders(bool dispose = false)
+        {
+            if (dispose)
+            {
+                foreach (var shader in _namedShaders.Values)
+                {
+                    shader.Dispose();
+                }
+            }
+            _namedShaders.Clear();
+            Logger.Info("All named shaders cleared");
+        }
+
         #endregion
 
         #region Public Methods - Global Shader Management

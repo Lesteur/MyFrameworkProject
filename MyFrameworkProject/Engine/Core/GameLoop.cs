@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using MyFrameworkProject.Engine.Audio;
 using MyFrameworkProject.Engine.Components;
-
+using MyFrameworkProject.Engine.Core.Coroutines;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
 
@@ -40,6 +40,24 @@ namespace MyFrameworkProject.Engine.Core
 
         #endregion
 
+        #region Fields - Coroutines
+
+        /// <summary>
+        /// The coroutine manager that handles all coroutine execution.
+        /// </summary>
+        private readonly CoroutineManager _coroutineManager;
+
+        #endregion
+
+        #region Properties - Coroutines
+
+        /// <summary>
+        /// Gets the coroutine manager for starting and stopping coroutines.
+        /// </summary>
+        public CoroutineManager Coroutines => _coroutineManager;
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -52,6 +70,10 @@ namespace MyFrameworkProject.Engine.Core
             // Initialize static input reference for all GameObjects
             GameObject.InitializeInput(inputManager);
             GameObject.InitializeAudio(audioManager);
+
+            // Initialize coroutine manager
+            _coroutineManager = new CoroutineManager();
+            GameObject.InitializeCoroutines(_coroutineManager);
 
             Logger.Info("GameLoop created");
         }
@@ -137,6 +159,9 @@ namespace MyFrameworkProject.Engine.Core
         public void Update()
         {
             float deltaTime = Time.DeltaTime;
+
+            // Update coroutines
+            _coroutineManager.Update(deltaTime);
 
             // Single optimized pass for game objects lifecycle
             int gameObjectCount = _gameObjects.Count;
