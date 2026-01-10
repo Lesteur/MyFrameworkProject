@@ -5,6 +5,7 @@ using MyFrameworkProject.Engine.Audio;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
 using MyFrameworkProject.Engine.Core.Coroutines;
+using MyFrameworkProject.Engine.Components.Collisions;
 
 namespace MyFrameworkProject.Engine.Components
 {
@@ -46,12 +47,36 @@ namespace MyFrameworkProject.Engine.Components
 
         #endregion
 
+        #region Fields - Collision
+
+        /// <summary>
+        /// The collision mask associated with this game object.
+        /// If null, the game object has no collision detection.
+        /// </summary>
+        private CollisionMask _collisionMask;
+
+        #endregion
+
         #region Properties - State
 
         /// <summary>
         /// Gets whether this game object is active and should be updated.
         /// </summary>
         public bool Active => _active;
+
+        #endregion
+
+        #region Properties - Collision
+
+        /// <summary>
+        /// Gets the collision mask associated with this game object.
+        /// </summary>
+        public CollisionMask CollisionMask => _collisionMask;
+
+        /// <summary>
+        /// Gets whether this game object has a collision mask.
+        /// </summary>
+        public bool HasCollisionMask => _collisionMask != null;
 
         #endregion
 
@@ -120,6 +145,49 @@ namespace MyFrameworkProject.Engine.Components
         public void SetActive(bool active)
         {
             _active = active;
+        }
+
+        #endregion
+
+        #region Public Methods - Collision Management
+
+        /// <summary>
+        /// Sets the collision mask for this game object.
+        /// </summary>
+        /// <param name="collisionMask">The collision mask to assign, or null to remove collision detection.</param>
+        public void SetCollisionMask(CollisionMask collisionMask)
+        {
+            _collisionMask = collisionMask;
+        }
+
+        /// <summary>
+        /// Checks if this game object's collision mask intersects with another game object's collision mask.
+        /// Returns false if either object doesn't have a collision mask.
+        /// </summary>
+        /// <param name="other">The other game object to check collision against.</param>
+        /// <returns>True if the collision masks intersect; otherwise, false.</returns>
+        public bool CollidesWith(GameObject other)
+        {
+            if (_collisionMask == null || other == null || other._collisionMask == null)
+                return false;
+
+            return _collisionMask.Intersects(other._collisionMask, _x, _y, other._x, other._y);
+        }
+
+        /// <summary>
+        /// Checks if this game object's collision mask intersects with a specific collision mask at a given position.
+        /// Returns false if this object doesn't have a collision mask.
+        /// </summary>
+        /// <param name="mask">The collision mask to check against.</param>
+        /// <param name="maskX">The world X-coordinate of the collision mask.</param>
+        /// <param name="maskY">The world Y-coordinate of the collision mask.</param>
+        /// <returns>True if the collision masks intersect; otherwise, false.</returns>
+        public bool CollidesWithMask(CollisionMask mask, float maskX, float maskY)
+        {
+            if (_collisionMask == null || mask == null)
+                return false;
+
+            return _collisionMask.Intersects(mask, _x, _y, maskX, maskY);
         }
 
         #endregion
