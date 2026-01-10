@@ -9,7 +9,7 @@ namespace MyFrameworkProject.Engine.Core
     /// </summary>
     public static class Time
     {
-        #region Properties
+        #region Properties - Time
 
         /// <summary>
         /// Gets the time in seconds that elapsed since the last frame.
@@ -35,6 +35,8 @@ namespace MyFrameworkProject.Engine.Core
         {
             DeltaTime = 0f;
             TotalTime = 0f;
+
+            Logger.Info("Time system initialized");
         }
 
         /// <summary>

@@ -66,7 +66,7 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
-        #region Properties
+        #region Properties - Transform
 
         /// <summary>
         /// Gets the current position of the camera in world space.
@@ -83,6 +83,10 @@ namespace MyFrameworkProject.Engine.Graphics
         /// </summary>
         public float Zoom => _zoom;
 
+        #endregion
+
+        #region Properties - Viewport
+
         /// <summary>
         /// Gets the width of the viewport in pixels.
         /// </summary>
@@ -92,10 +96,6 @@ namespace MyFrameworkProject.Engine.Graphics
         /// Gets the height of the viewport in pixels.
         /// </summary>
         public int ViewportHeight => _viewportHeight;
-
-        #endregion
-
-        #region Constructors
 
         #endregion
 
@@ -118,6 +118,16 @@ namespace MyFrameworkProject.Engine.Graphics
         }
 
         /// <summary>
+        /// Sets the camera position to the specified vector in world space.
+        /// Only updates and marks the transform as dirty if the position actually changes.
+        /// </summary>
+        /// <param name="position">The new position vector.</param>
+        public void SetPosition(Vector2 position)
+        {
+            SetPosition(position.X, position.Y);
+        }
+
+        /// <summary>
         /// Moves the camera by the specified offset in world space.
         /// Only updates and marks the transform as dirty if the offset is non-zero.
         /// </summary>
@@ -131,6 +141,16 @@ namespace MyFrameworkProject.Engine.Graphics
             _position.X += dx;
             _position.Y += dy;
             _dirty = true;
+        }
+
+        /// <summary>
+        /// Moves the camera by the specified offset vector.
+        /// Only updates and marks the transform as dirty if the offset is non-zero.
+        /// </summary>
+        /// <param name="offset">The offset vector to move the camera.</param>
+        public void Move(Vector2 offset)
+        {
+            Move(offset.X, offset.Y);
         }
 
         #endregion
@@ -177,11 +197,23 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="zoom">The new zoom level. Values greater than 1.0 zoom in, less than 1.0 zoom out.</param>
         public void SetZoom(float zoom)
         {
-            if (_zoom == zoom)
+            float clampedZoom = MathHelper.Max(zoom, 0.1f);
+            
+            if (_zoom == clampedZoom)
                 return;
 
-            _zoom = MathHelper.Max(zoom, 0.1f);
+            _zoom = clampedZoom;
             _dirty = true;
+        }
+
+        /// <summary>
+        /// Adjusts the camera zoom by the specified amount.
+        /// The zoom is clamped to a minimum of 0.1 to prevent invalid transformations.
+        /// </summary>
+        /// <param name="zoomDelta">The amount to add to the current zoom level.</param>
+        public void AdjustZoom(float zoomDelta)
+        {
+            SetZoom(_zoom + zoomDelta);
         }
 
         #endregion
@@ -197,14 +229,14 @@ namespace MyFrameworkProject.Engine.Graphics
         public Matrix GetTransformMatrix()
         {
             if (_dirty)
-                Recalculate();
+                RecalculateTransformMatrix();
 
             return _transformMatrix;
         }
 
         #endregion
 
-        #region Private Methods
+        #region Private Methods - Helpers
 
         /// <summary>
         /// Recalculates the transform matrix based on the current camera properties.
@@ -214,7 +246,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// 3. Apply zoom scaling
         /// 4. Translate back to the center of the viewport
         /// </summary>
-        private void Recalculate()
+        private void RecalculateTransformMatrix()
         {
             _transformMatrix =
                 Matrix.CreateTranslation(new Vector3(-_position.X, -_position.Y, 0f)) *

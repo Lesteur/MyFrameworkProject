@@ -1,9 +1,12 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Collections.Generic;
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Graphics.Shaders;
-using System.Collections.Generic;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -11,7 +14,7 @@ namespace MyFrameworkProject.Engine.Core
     /// Central rendering system responsible for managing sprite batch operations and camera transformations.
     /// Provides separate rendering contexts for world-space and UI-space objects with automatic virtual resolution scaling.
     /// </summary>
-    public sealed class Renderer
+    public sealed class Renderer : IDisposable
     {
         #region Fields - Graphics
 
@@ -25,8 +28,19 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         private readonly SpriteBatch _spriteBatch;
 
+        /// <summary>
+        /// Collection of named textures for resource management.
+        /// </summary>
         private readonly Dictionary<string, Graphics.Texture> _namedTextures;
+
+        /// <summary>
+        /// Collection of named sprites for resource management.
+        /// </summary>
         private readonly Dictionary<string, Sprite> _namedSprites;
+
+        /// <summary>
+        /// Collection of named tilesets for resource management.
+        /// </summary>
         private readonly Dictionary<string, Tileset> _namedTilesets;
 
         #endregion
@@ -66,7 +80,16 @@ namespace MyFrameworkProject.Engine.Core
 
         #endregion
 
-        #region Properties
+        #region Fields - State
+
+        /// <summary>
+        /// Indicates whether the renderer has been disposed.
+        /// </summary>
+        private bool _disposed = false;
+
+        #endregion
+
+        #region Properties - Cameras
 
         /// <summary>
         /// Gets the camera used for rendering world-space entities.
@@ -77,6 +100,10 @@ namespace MyFrameworkProject.Engine.Core
         /// Gets the camera used for rendering UI-space elements.
         /// </summary>
         public Camera UICamera => _uiCamera;
+
+        #endregion
+
+        #region Properties - Shaders
 
         /// <summary>
         /// Gets the shader manager for managing global and entity-specific shaders.
@@ -98,8 +125,14 @@ namespace MyFrameworkProject.Engine.Core
             _spriteBatch = new SpriteBatch(graphicsDevice);
             _shaderManager = new ShaderManager();
 
+            _namedTextures = [];
+            _namedSprites = [];
+            _namedTilesets = [];
+
             InitializeCameras();
             CalculateScalingMatrix();
+
+            Logger.Info("Renderer initialized");
         }
 
         #endregion
@@ -145,45 +178,131 @@ namespace MyFrameworkProject.Engine.Core
 
         #endregion
 
+        #region Public Methods - Resource Management
+
+        /// <summary>
+        /// Registers a texture with the specified name for later retrieval.
+        /// </summary>
+        /// <param name="name">The unique name for the texture.</param>
+        /// <param name="texture">The texture to register.</param>
+        /// <returns>True if the texture was registered successfully; false if the name already exists.</returns>
         public bool RegisterTexture(string name, Graphics.Texture texture)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                Logger.Warning("Cannot register texture with null or empty name");
+                return false;
+            }
+
+            if (texture == null)
+            {
+                Logger.Warning($"Cannot register null texture with name '{name}'");
+                return false;
+            }
+
             return _namedTextures.TryAdd(name, texture);
         }
 
+        /// <summary>
+        /// Retrieves a texture by its registered name.
+        /// </summary>
+        /// <param name="name">The name of the texture to retrieve.</param>
+        /// <returns>The texture if found; otherwise, null.</returns>
         public Graphics.Texture GetTexture(string name)
         {
-            _namedTextures.TryGetValue(name, out Graphics.Texture? texture);
+            if (string.IsNullOrEmpty(name))
+                return null;
+
+            _namedTextures.TryGetValue(name, out Graphics.Texture texture);
             return texture;
         }
 
+        /// <summary>
+        /// Registers a sprite with the specified name for later retrieval.
+        /// </summary>
+        /// <param name="name">The unique name for the sprite.</param>
+        /// <param name="sprite">The sprite to register.</param>
+        /// <returns>True if the sprite was registered successfully; false if the name already exists.</returns>
         public bool RegisterSprite(string name, Sprite sprite)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                Logger.Warning("Cannot register sprite with null or empty name");
+                return false;
+            }
+
+            if (sprite == null)
+            {
+                Logger.Warning($"Cannot register null sprite with name '{name}'");
+                return false;
+            }
+
             return _namedSprites.TryAdd(name, sprite);
         }
 
+        /// <summary>
+        /// Retrieves a sprite by its registered name.
+        /// </summary>
+        /// <param name="name">The name of the sprite to retrieve.</param>
+        /// <returns>The sprite if found; otherwise, null.</returns>
         public Sprite GetSprite(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
             _namedSprites.TryGetValue(name, out Sprite sprite);
             return sprite;
         }
 
+        /// <summary>
+        /// Registers a tileset with the specified name for later retrieval.
+        /// </summary>
+        /// <param name="name">The unique name for the tileset.</param>
+        /// <param name="tileset">The tileset to register.</param>
+        /// <returns>True if the tileset was registered successfully; false if the name already exists.</returns>
         public bool RegisterTileset(string name, Tileset tileset)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                Logger.Warning("Cannot register tileset with null or empty name");
+                return false;
+            }
+
+            if (tileset == null)
+            {
+                Logger.Warning($"Cannot register null tileset with name '{name}'");
+                return false;
+            }
+
             return _namedTilesets.TryAdd(name, tileset);
         }
 
+        /// <summary>
+        /// Retrieves a tileset by its registered name.
+        /// </summary>
+        /// <param name="name">The name of the tileset to retrieve.</param>
+        /// <returns>The tileset if found; otherwise, null.</returns>
         public Tileset GetTileset(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
             _namedTilesets.TryGetValue(name, out Tileset tileset);
             return tileset;
         }
 
+        /// <summary>
+        /// Clears all registered resources (textures, sprites, and tilesets).
+        /// </summary>
         public void ClearResources()
         {
             _namedTextures.Clear();
             _namedSprites.Clear();
             _namedTilesets.Clear();
+            Logger.Info("All renderer resources cleared");
         }
+
+        #endregion
 
         #region Public Methods - Frame Management
 
@@ -247,34 +366,6 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         /// <summary>
-        /// Draws an entity with its specific shader by temporarily switching the sprite batch context.
-        /// </summary>
-        /// <param name="entity">The entity with a custom shader to render.</param>
-        private void DrawEntityWithShader(Entity entity)
-        {
-            // End current batch
-            _spriteBatch.End();
-
-            // Begin new batch with entity-specific shader
-            _spriteBatch.Begin(
-                sortMode: SpriteSortMode.Deferred,
-                blendState: BlendState.AlphaBlend,
-                samplerState: SamplerState.PointClamp,
-                depthStencilState: null,
-                rasterizerState: null,
-                effect: entity.Shader.NativeEffect,
-                transformMatrix: _worldCamera.GetTransformMatrix() * _scalingMatrix
-            );
-
-            // Draw entity with its specific shader
-            entity.Draw(_spriteBatch);
-
-            // Resume normal batch with global shader
-            _spriteBatch.End();
-            BeginWorld();
-        }
-
-        /// <summary>
         /// Draws a tilemap to the screen. This is a convenience method that calls DrawEntity internally.
         /// Tilemaps now inherit from Entity and use the same rendering pipeline.
         /// </summary>
@@ -333,7 +424,8 @@ namespace MyFrameworkProject.Engine.Core
         #region Private Methods - Shader Management
 
         /// <summary>
-        /// Gets the active shader for world rendering. Returns null if no global world shaders are registered.
+        /// Gets the active shader for world rendering.
+        /// Returns null if no global world shaders are registered.
         /// </summary>
         /// <returns>The active world shader effect, or null.</returns>
         private Effect GetActiveWorldShader()
@@ -344,7 +436,8 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         /// <summary>
-        /// Gets the active shader for UI rendering. Returns null if no global UI shaders are registered.
+        /// Gets the active shader for UI rendering.
+        /// Returns null if no global UI shaders are registered.
         /// </summary>
         /// <returns>The active UI shader effect, or null.</returns>
         private Effect GetActiveUIShader()
@@ -352,6 +445,69 @@ namespace MyFrameworkProject.Engine.Core
             return _shaderManager.GlobalUIShaders.Count > 0
                 ? _shaderManager.GlobalUIShaders[0].NativeEffect
                 : null;
+        }
+
+        /// <summary>
+        /// Draws an entity with its specific shader by temporarily switching the sprite batch context.
+        /// </summary>
+        /// <param name="entity">The entity with a custom shader to render.</param>
+        private void DrawEntityWithShader(Entity entity)
+        {
+            // End current batch
+            _spriteBatch.End();
+
+            // Begin new batch with entity-specific shader
+            _spriteBatch.Begin(
+                sortMode: SpriteSortMode.Deferred,
+                blendState: BlendState.AlphaBlend,
+                samplerState: SamplerState.PointClamp,
+                depthStencilState: null,
+                rasterizerState: null,
+                effect: entity.Shader.NativeEffect,
+                transformMatrix: _worldCamera.GetTransformMatrix() * _scalingMatrix
+            );
+
+            // Draw entity with its specific shader
+            entity.Draw(_spriteBatch);
+
+            // Resume normal batch with global shader
+            _spriteBatch.End();
+            BeginWorld();
+        }
+
+        #endregion
+
+        #region IDisposable Implementation
+
+        /// <summary>
+        /// Releases all resources used by the renderer.
+        /// Disposes the sprite batch and shader manager.
+        /// </summary>
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _spriteBatch?.Dispose();
+            _shaderManager?.Dispose();
+
+            ClearResources();
+
+            _disposed = true;
+            Logger.Info("Renderer disposed");
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+
+        #region Destructor
+
+        /// <summary>
+        /// Finalizer to ensure resources are released if Dispose is not called.
+        /// </summary>
+        ~Renderer()
+        {
+            Dispose();
         }
 
         #endregion

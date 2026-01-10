@@ -24,6 +24,20 @@
 
         #endregion
 
+        #region Properties - State
+
+        /// <summary>
+        /// Gets the current state of the input device.
+        /// </summary>
+        protected TState CurrentState => _currentState;
+
+        /// <summary>
+        /// Gets the previous state of the input device from the last frame.
+        /// </summary>
+        protected TState PreviousState => _previousState;
+
+        #endregion
+
         #region Public Methods - Lifecycle
 
         /// <summary>
@@ -50,7 +64,7 @@
 
         #endregion
 
-        #region Protected Methods - Abstract
+        #region Protected Methods - State Retrieval
 
         /// <summary>
         /// Gets the current state of the input device from the hardware.

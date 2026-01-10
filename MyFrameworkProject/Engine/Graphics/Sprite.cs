@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+
+using Microsoft.Xna.Framework;
 
 namespace MyFrameworkProject.Engine.Graphics
 {
@@ -68,9 +70,10 @@ namespace MyFrameworkProject.Engine.Graphics
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Sprite"/> class with default values.
+        /// This constructor is protected to prevent direct instantiation without a texture.
         /// Sets the frame count to 1.
         /// </summary>
-        public Sprite()
+        protected Sprite()
         {
             _frameCount = 1;
         }
@@ -83,6 +86,11 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="frameCount">The number of frames in the sprite sheet. Default is 1.</param>
         public Sprite(Texture texture, int frameCount = 1)
         {
+            ArgumentNullException.ThrowIfNull(texture);
+
+            if (frameCount <= 0)
+                throw new ArgumentException("Frame count must be greater than zero.", nameof(frameCount));
+
             _texture = texture;
             _frameCount = frameCount;
 
@@ -113,7 +121,7 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
-        #region Public Methods - Texture
+        #region Properties - Texture
 
         /// <summary>
         /// Gets the texture containing the sprite image data.
@@ -122,7 +130,7 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
-        #region Public Methods - Dimensions
+        #region Properties - Dimensions
 
         /// <summary>
         /// Gets the total width of the sprite texture in pixels.
@@ -136,7 +144,7 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
-        #region Public Methods - Frame
+        #region Properties - Frame
 
         /// <summary>
         /// Gets the number of frames in the sprite sheet.
@@ -153,27 +161,9 @@ namespace MyFrameworkProject.Engine.Graphics
         /// </summary>
         public int FrameHeight => _frameHeight;
 
-        /// <summary>
-        /// Calculates and returns the source rectangle for the specified frame number.
-        /// The frame number wraps around using modulo to prevent out-of-bounds access.
-        /// </summary>
-        /// <param name="frameNumber">The zero-based index of the frame to retrieve.</param>
-        /// <returns>A <see cref="Rectangle"/> representing the source area in the texture for the specified frame.</returns>
-        public Rectangle GetSourceRectangle(int frameNumber)
-        {
-            frameNumber %= _frameCount;
-
-            return new Rectangle(
-                frameNumber * _frameWidth,
-                0,
-                _frameWidth,
-                _frameHeight
-            );
-        }
-
         #endregion
 
-        #region Public Methods - Origin
+        #region Properties - Origin
 
         /// <summary>
         /// Gets the X-coordinate of the sprite's origin point.
@@ -192,6 +182,29 @@ namespace MyFrameworkProject.Engine.Graphics
         /// The origin point is used as the pivot for rotation and positioning.
         /// </summary>
         public Vector2 Origin => new(_xOrigin, _yOrigin);
+
+        #endregion
+
+        #region Public Methods - Frame
+
+        /// <summary>
+        /// Calculates and returns the source rectangle for the specified frame number.
+        /// The frame number wraps around using modulo to prevent out-of-bounds access.
+        /// </summary>
+        /// <param name="frameNumber">The zero-based index of the frame to retrieve.</param>
+        /// <returns>A <see cref="Rectangle"/> representing the source area in the texture for the specified frame.</returns>
+        public Rectangle GetSourceRectangle(int frameNumber)
+        {
+            // Wrap frame number to prevent out-of-bounds access
+            frameNumber %= _frameCount;
+
+            return new Rectangle(
+                frameNumber * _frameWidth,
+                0,
+                _frameWidth,
+                _frameHeight
+            );
+        }
 
         #endregion
     }

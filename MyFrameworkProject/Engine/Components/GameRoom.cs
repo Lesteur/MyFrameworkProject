@@ -1,17 +1,20 @@
-﻿using Microsoft.Xna.Framework.Content;
+﻿using System;
+using System.IO;
+using System.Collections.Generic;
+
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+
 using MyFrameworkProject.Engine.Core;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Serialization;
-using System;
-using System.Collections.Generic;
-using System.IO;
 
 namespace MyFrameworkProject.Engine.Components
 {
     /// <summary>
     /// Represents a game room (scene) that manages its own resources, entities, and lifecycle.
     /// Provides automatic resource loading and cleanup when the room becomes active or inactive.
+    /// Supports Tiled map integration for level design and automatic tilemap generation.
     /// </summary>
     /// <param name="width">The width of the room in pixels.</param>
     /// <param name="height">The height of the room in pixels.</param>
@@ -19,8 +22,17 @@ namespace MyFrameworkProject.Engine.Components
     {
         #region Fields - Dimensions
 
-        private int _width = width;
-        private int _height = height;
+        /// <summary>
+        /// The width of the room in pixels.
+        /// Can be updated dynamically when loading Tiled maps.
+        /// </summary>
+        private int _width = width > 0 ? width : throw new ArgumentException("Width must be greater than zero.", nameof(width));
+
+        /// <summary>
+        /// The height of the room in pixels.
+        /// Can be updated dynamically when loading Tiled maps.
+        /// </summary>
+        private int _height = height > 0 ? height : throw new ArgumentException("Height must be greater than zero.", nameof(height));
 
         #endregion
 
@@ -34,7 +46,7 @@ namespace MyFrameworkProject.Engine.Components
 
         #endregion
 
-        #region Properties
+        #region Properties - Dimensions
 
         /// <summary>
         /// Gets the width of this game room in pixels.
@@ -46,23 +58,38 @@ namespace MyFrameworkProject.Engine.Components
         /// </summary>
         public int Height => _height;
 
+        #endregion
+
+        #region Properties - Systems
+
         /// <summary>
         /// Gets the game loop associated with this room.
+        /// Provides access to entity and tilemap management.
         /// </summary>
         protected GameLoop GameLoop { get; private set; }
 
         /// <summary>
         /// Gets the content manager for loading resources.
+        /// Use this to load textures, sounds, and other game assets.
         /// </summary>
         protected ContentManager Content { get; private set; }
 
+        #endregion
+
+        #region Properties - State
+
         /// <summary>
-        /// Gets whether this room is currently loaded.
+        /// Gets whether this room is currently loaded and active.
         /// </summary>
         public bool IsLoaded { get; private set; }
 
+        #endregion
+
+        #region Properties - Camera
+
         /// <summary>
         /// Gets or sets the game object that the camera should follow in this room.
+        /// Set to null to disable camera following.
         /// </summary>
         public GameObject CameraTarget { get; protected set; }
 
@@ -128,7 +155,7 @@ namespace MyFrameworkProject.Engine.Components
 
         #endregion
 
-        #region Abstract/Virtual Methods - Room Lifecycle
+        #region Protected Methods - Room Lifecycle
 
         /// <summary>
         /// Called when the room is loaded. Override this to load room-specific resources and create entities.
@@ -151,11 +178,18 @@ namespace MyFrameworkProject.Engine.Components
 
         /// <summary>
         /// Loads a Tiled map from the content pipeline and creates all associated tilemaps and game objects.
+        /// Automatically updates room dimensions to match the map size.
         /// </summary>
         /// <param name="assetPath">Relative path to the Tiled map asset (e.g., "Maps/Level1").</param>
         /// <param name="objectFactory">Optional factory function to create GameObjects from Tiled objects.</param>
         protected void LoadTiledMap(string assetPath, Func<TiledObject, GameObject> objectFactory = null)
         {
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                Logger.Error("Cannot load Tiled map with null or empty asset path");
+                return;
+            }
+
             // Load the Tiled map from the content pipeline
             var tiledMap = Content.Load<TiledMap>(assetPath);
             if (tiledMap == null)
@@ -193,6 +227,41 @@ namespace MyFrameworkProject.Engine.Components
 
             Logger.Info($"Tiled map '{assetPath}' loaded successfully with {tiledMap.Layers.Count} layers");
         }
+
+        /// <summary>
+        /// Creates a default GameObject from a Tiled object.
+        /// Override this method to provide custom object creation logic.
+        /// </summary>
+        /// <param name="tiledObject">The Tiled object definition.</param>
+        /// <returns>A GameObject instance or null.</returns>
+        protected virtual GameObject CreateDefaultGameObject(TiledObject tiledObject)
+        {
+            Logger.Warning($"No factory defined for object type: {tiledObject.Type}");
+            return null;
+        }
+
+        #endregion
+
+        #region Protected Methods - Resource Management
+
+        /// <summary>
+        /// Registers a disposable resource for automatic cleanup when the room is unloaded.
+        /// </summary>
+        /// <typeparam name="T">The type of resource to track.</typeparam>
+        /// <param name="resource">The resource to track.</param>
+        /// <returns>The same resource for fluent API usage.</returns>
+        protected T TrackResource<T>(T resource) where T : IDisposable
+        {
+            if (resource != null)
+            {
+                _disposableResources.Add(resource);
+            }
+            return resource;
+        }
+
+        #endregion
+
+        #region Private Methods - Tiled Map Processing
 
         /// <summary>
         /// Loads all tilesets referenced by a Tiled map.
@@ -273,9 +342,10 @@ namespace MyFrameworkProject.Engine.Components
 
         /// <summary>
         /// Processes a tile layer from a Tiled map and adds it to the game loop.
+        /// Supports multiple tilesets by determining the correct tileset for each tile.
         /// </summary>
         /// <param name="layer">The tile layer to process.</param>
-        /// <param name="tilesets">Dictionary of available tilesets.</param>
+        /// <param name="tilesets">Dictionary of available tilesets mapped by FirstGid.</param>
         private void ProcessTileLayer(TiledLayer layer, Dictionary<int, Tileset> tilesets)
         {
             if (layer.Data == null || layer.Data.Count == 0)
@@ -284,18 +354,26 @@ namespace MyFrameworkProject.Engine.Components
                 return;
             }
 
-            // Get the first tileset (simple implementation)
-            // For multi-tileset support, you'd need to determine which tileset each tile belongs to
-            Tileset tileset = null;
-            foreach (var ts in tilesets.Values)
+            if (tilesets.Count == 0)
             {
-                tileset = ts;
+                Logger.Warning($"No tilesets available for layer: {layer.Name}");
+                return;
+            }
+
+            // For simplicity, use the first tileset (can be extended for multi-tileset support)
+            Tileset tileset = null;
+            int firstGid = 0;
+
+            foreach (var kvp in tilesets)
+            {
+                tileset = kvp.Value;
+                firstGid = kvp.Key;
                 break;
             }
 
             if (tileset == null)
             {
-                Logger.Warning($"No tileset found for layer: {layer.Name}");
+                Logger.Warning($"No valid tileset found for layer: {layer.Name}");
                 return;
             }
 
@@ -308,14 +386,21 @@ namespace MyFrameworkProject.Engine.Components
                 for (int x = 0; x < layer.Width; x++)
                 {
                     int index = y * layer.Width + x;
-                    if (index < layer.Data.Count)
+                    if (index >= layer.Data.Count)
+                        continue;
+
+                    int tileId = layer.Data[index];
+                    
+                    // Skip empty tiles (Tiled uses 0 for empty)
+                    if (tileId == 0)
+                        continue;
+
+                    // Convert from Tiled GID to tileset index
+                    int tileIndex = tileId - firstGid;
+                    
+                    if (tileIndex >= 0)
                     {
-                        int tileId = layer.Data[index];
-                        // Tiled uses 0 for empty tiles, subtract 1 for tileset indexing
-                        if (tileId > 0)
-                        {
-                            tilemap.SetTile(x, y, tileId - 1);
-                        }
+                        tilemap.SetTile(x, y, tileIndex);
                     }
                 }
             }
@@ -366,34 +451,6 @@ namespace MyFrameworkProject.Engine.Components
                     Logger.Info($"Created object: {obj.Name} ({obj.Type}) at ({obj.X}, {obj.Y})");
                 }
             }
-        }
-
-        /// <summary>
-        /// Creates a default GameObject from a Tiled object.
-        /// Override this method to provide custom object creation logic.
-        /// </summary>
-        /// <param name="tiledObject">The Tiled object definition.</param>
-        /// <returns>A GameObject instance or null.</returns>
-        protected virtual GameObject CreateDefaultGameObject(TiledObject tiledObject)
-        {
-            Logger.Warning($"No factory defined for object type: {tiledObject.Type}");
-            return null;
-        }
-
-        #endregion
-
-        #region Protected Methods - Resource Management
-
-        /// <summary>
-        /// Registers a disposable resource for automatic cleanup when the room is unloaded.
-        /// </summary>
-        /// <typeparam name="T">The type of resource to track.</typeparam>
-        /// <param name="resource">The resource to track.</param>
-        /// <returns>The same resource for fluent API usage.</returns>
-        protected T TrackResource<T>(T resource) where T : IDisposable
-        {
-            _disposableResources.Add(resource);
-            return resource;
         }
 
         #endregion

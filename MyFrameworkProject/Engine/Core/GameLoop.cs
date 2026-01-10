@@ -104,11 +104,12 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         /// <summary>
-        /// Clears all game objects from the game loop immediately.
+        /// Clears all game objects and tilemaps from the game loop immediately.
         /// </summary>
         public void ClearGameObjects()
         {
             _gameObjects.Clear();
+            _tilemaps.Clear();
             _gameObjectsToAdd.Clear();
             _gameObjectsToRemove.Clear();
         }

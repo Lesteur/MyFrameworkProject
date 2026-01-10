@@ -1,7 +1,8 @@
-﻿using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Media;
-using System;
+﻿using System;
 using System.Collections.Generic;
+
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
 
 namespace MyFrameworkProject.Engine.Audio
 {
@@ -12,17 +13,17 @@ namespace MyFrameworkProject.Engine.Audio
     /// </summary>
     public sealed class AudioManager : IDisposable
     {
-        #region Fields - Sound Management
+        #region Fields - Sound Collections
 
         /// <summary>
         /// Dictionary of all loaded sounds, indexed by their unique identifier.
         /// </summary>
-        private readonly Dictionary<string, Sound> _sounds = [];
+        private readonly Dictionary<string, Sound> _sounds;
 
         /// <summary>
         /// List of currently playing sound instances for tracking and cleanup.
         /// </summary>
-        private readonly List<Sound> _activeSounds = [];
+        private readonly List<Sound> _activeSounds;
 
         #endregion
 
@@ -140,6 +141,9 @@ namespace MyFrameworkProject.Engine.Audio
         /// </summary>
         public AudioManager()
         {
+            _sounds = [];
+            _activeSounds = [];
+
             Core.Logger.Info("AudioManager initialized");
         }
 
@@ -274,6 +278,7 @@ namespace MyFrameworkProject.Engine.Audio
             }
 
             _activeSounds.Clear();
+            Core.Logger.Info("All sounds stopped");
         }
 
         #endregion

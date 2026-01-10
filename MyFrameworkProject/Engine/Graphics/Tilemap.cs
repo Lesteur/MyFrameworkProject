@@ -1,7 +1,9 @@
+using System;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using MyFrameworkProject.Engine.Components;
-using System.Threading;
 
 namespace MyFrameworkProject.Engine.Graphics
 {
@@ -40,6 +42,29 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
+        #region Properties - Tileset
+
+        /// <summary>
+        /// Gets the tileset associated with this tilemap.
+        /// </summary>
+        public Tileset Tileset => _tileset;
+
+        #endregion
+
+        #region Properties - Grid
+
+        /// <summary>
+        /// Gets the width of the tilemap grid in tiles.
+        /// </summary>
+        public int GridWidth => _gridWidth;
+
+        /// <summary>
+        /// Gets the height of the tilemap grid in tiles.
+        /// </summary>
+        public int GridHeight => _gridHeight;
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -50,6 +75,14 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="gridHeight">The height of the tilemap grid in tiles.</param>
         public Tilemap(Tileset tileset, int gridWidth, int gridHeight) : base()
         {
+            ArgumentNullException.ThrowIfNull(tileset);
+
+            if (gridWidth <= 0)
+                throw new ArgumentException("Grid width must be greater than zero.", nameof(gridWidth));
+
+            if (gridHeight <= 0)
+                throw new ArgumentException("Grid height must be greater than zero.", nameof(gridHeight));
+
             _tileset = tileset;
             _gridWidth = gridWidth;
             _gridHeight = gridHeight;
@@ -61,7 +94,7 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
-        #region Public Methods - Tileset
+        #region Public Methods - Tileset Management
 
         /// <summary>
         /// Sets the tileset for this tilemap.
@@ -69,17 +102,13 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="tileset">The new tileset to assign.</param>
         public void SetTileset(Tileset tileset)
         {
+            ArgumentNullException.ThrowIfNull(tileset);
             _tileset = tileset;
         }
 
-        /// <summary>
-        /// Gets the tileset associated with this tilemap.
-        /// </summary>
-        public Tileset Tileset => _tileset;
-
         #endregion
 
-        #region Public Methods - Tile Data
+        #region Public Methods - Tile Data Management
 
         /// <summary>
         /// Sets a tile at the specified grid coordinates.
@@ -89,7 +118,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="tileIndex">The tile index from the tileset. Use -1 for empty tiles.</param>
         public void SetTile(int gridX, int gridY, int tileIndex)
         {
-            if (gridX >= 0 && gridX < _gridWidth && gridY >= 0 && gridY < _gridHeight)
+            if (IsValidGridPosition(gridX, gridY))
             {
                 _tileData[gridX, gridY] = tileIndex;
             }
@@ -103,7 +132,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <returns>The tile index at the specified position, or -1 if out of bounds.</returns>
         public int GetTile(int gridX, int gridY)
         {
-            if (gridX >= 0 && gridX < _gridWidth && gridY >= 0 && gridY < _gridHeight)
+            if (IsValidGridPosition(gridX, gridY))
             {
                 return _tileData[gridX, gridY];
             }
@@ -160,12 +189,12 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <param name="tileIndex">The tile index to fill with.</param>
         public void FillRegion(int startX, int startY, int width, int height, int tileIndex)
         {
-            int endX = System.Math.Min(startX + width, _gridWidth);
-            int endY = System.Math.Min(startY + height, _gridHeight);
+            int endX = Math.Min(startX + width, _gridWidth);
+            int endY = Math.Min(startY + height, _gridHeight);
 
-            for (int x = System.Math.Max(0, startX); x < endX; x++)
+            for (int x = Math.Max(0, startX); x < endX; x++)
             {
-                for (int y = System.Math.Max(0, startY); y < endY; y++)
+                for (int y = Math.Max(0, startY); y < endY; y++)
                 {
                     _tileData[x, y] = tileIndex;
                 }
@@ -174,46 +203,7 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
-        #region Public Methods - Grid
-
-        /// <summary>
-        /// Gets the width of the tilemap grid in tiles.
-        /// </summary>
-        public int GridWidth => _gridWidth;
-
-        /// <summary>
-        /// Gets the height of the tilemap grid in tiles.
-        /// </summary>
-        public int GridHeight => _gridHeight;
-
-        #endregion
-
         #region Public Methods - Rendering
-
-        /// <summary>
-        /// Calculates the source rectangle for a specific tile index in the tileset.
-        /// </summary>
-        /// <param name="tileIndex">The tile index.</param>
-        /// <returns>A <see cref="Rectangle"/> representing the source area in the tileset texture.</returns>
-        private Rectangle GetTileSourceRectangle(int tileIndex)
-        {
-            if (_tileset == null || tileIndex < 0)
-                return Rectangle.Empty;
-
-            // Calculate the number of tiles per row, accounting for margins and spacing
-            int availableWidth = _tileset.Width - (2 * _tileset.XMargin);
-            int tilesPerRow = (availableWidth + _tileset.XSpacing) / (_tileset.TileWidth + _tileset.XSpacing);
-
-            // Calculate row and column from tile index
-            int row = tileIndex / tilesPerRow;
-            int col = tileIndex % tilesPerRow;
-
-            // Calculate the pixel position of the tile in the texture
-            int x = _tileset.XMargin + col * (_tileset.TileWidth + _tileset.XSpacing);
-            int y = _tileset.YMargin + row * (_tileset.TileHeight + _tileset.YSpacing);
-
-            return new Rectangle(x, y, _tileset.TileWidth, _tileset.TileHeight);
-        }
 
         /// <summary>
         /// Draws the tilemap to the screen using the provided sprite batch.
@@ -255,6 +245,45 @@ namespace MyFrameworkProject.Engine.Graphics
                     );
                 }
             }
+        }
+
+        #endregion
+
+        #region Private Methods - Helpers
+
+        /// <summary>
+        /// Checks if the specified grid coordinates are within valid bounds.
+        /// </summary>
+        /// <param name="gridX">The X-coordinate in the grid.</param>
+        /// <param name="gridY">The Y-coordinate in the grid.</param>
+        /// <returns>True if the coordinates are valid, false otherwise.</returns>
+        private bool IsValidGridPosition(int gridX, int gridY)
+        {
+            return gridX >= 0 && gridX < _gridWidth && gridY >= 0 && gridY < _gridHeight;
+        }
+
+        /// <summary>
+        /// Calculates the source rectangle for a specific tile index in the tileset.
+        /// </summary>
+        /// <param name="tileIndex">The tile index.</param>
+        /// <returns>A <see cref="Rectangle"/> representing the source area in the tileset texture.</returns>
+        private Rectangle GetTileSourceRectangle(int tileIndex)
+        {
+            if (_tileset == null || tileIndex < 0)
+                return Rectangle.Empty;
+
+            // Calculate the number of tiles per row, accounting for margins and spacing
+            int tilesPerRow = _tileset.GetTilesPerRow();
+
+            // Calculate row and column from tile index
+            int row = tileIndex / tilesPerRow;
+            int col = tileIndex % tilesPerRow;
+
+            // Calculate the pixel position of the tile in the texture
+            int x = _tileset.XMargin + col * (_tileset.TileWidth + _tileset.XSpacing);
+            int y = _tileset.YMargin + row * (_tileset.TileHeight + _tileset.YSpacing);
+
+            return new Rectangle(x, y, _tileset.TileWidth, _tileset.TileHeight);
         }
 
         #endregion

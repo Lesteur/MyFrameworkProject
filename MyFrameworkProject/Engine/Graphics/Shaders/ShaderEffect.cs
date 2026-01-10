@@ -1,7 +1,8 @@
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace MyFrameworkProject.Engine.Graphics.Shaders
 {
@@ -34,7 +35,7 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
 
         #endregion
 
-        #region Properties
+        #region Properties - Effect
 
         /// <summary>
         /// Gets the native MonoGame effect for direct access if needed.
@@ -160,6 +161,52 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
             param?.SetValue(value);
         }
 
+        /// <summary>
+        /// Sets the value of a float array parameter in the shader.
+        /// </summary>
+        /// <param name="parameterName">The name of the parameter in the shader.</param>
+        /// <param name="value">The float array to set.</param>
+        public void SetParameter(string parameterName, float[] value)
+        {
+            var param = GetParameter(parameterName);
+            param?.SetValue(value);
+        }
+
+        /// <summary>
+        /// Sets the value of a Vector2 array parameter in the shader.
+        /// </summary>
+        /// <param name="parameterName">The name of the parameter in the shader.</param>
+        /// <param name="value">The Vector2 array to set.</param>
+        public void SetParameter(string parameterName, Vector2[] value)
+        {
+            var param = GetParameter(parameterName);
+            param?.SetValue(value);
+        }
+
+        #endregion
+
+        #region Public Methods - Technique Selection
+
+        /// <summary>
+        /// Selects a technique by name.
+        /// </summary>
+        /// <param name="techniqueName">The name of the technique to use.</param>
+        /// <returns>True if the technique was found and selected, otherwise false.</returns>
+        public bool SetTechnique(string techniqueName)
+        {
+            if (string.IsNullOrEmpty(techniqueName))
+                return false;
+
+            var technique = _nativeEffect.Techniques[techniqueName];
+            if (technique != null)
+            {
+                CurrentTechnique = technique;
+                return true;
+            }
+
+            return false;
+        }
+
         #endregion
 
         #region Private Methods - Parameter Management
@@ -190,34 +237,10 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
 
         #endregion
 
-        #region Public Methods - Technique Selection
-
-        /// <summary>
-        /// Selects a technique by name.
-        /// </summary>
-        /// <param name="techniqueName">The name of the technique to use.</param>
-        /// <returns>True if the technique was found and selected, otherwise false.</returns>
-        public bool SetTechnique(string techniqueName)
-        {
-            if (string.IsNullOrEmpty(techniqueName))
-                return false;
-
-            var technique = _nativeEffect.Techniques[techniqueName];
-            if (technique != null)
-            {
-                CurrentTechnique = technique;
-                return true;
-            }
-
-            return false;
-        }
-
-        #endregion
-
         #region IDisposable Implementation
 
         /// <summary>
-        /// Releases all resources used by the shader.
+        /// Releases all resources used by the shader effect.
         /// Note: The native effect is NOT disposed as it is managed by the ContentManager.
         /// </summary>
         public void Dispose()
@@ -227,6 +250,19 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
 
             _parameterCache.Clear();
             _disposed = true;
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+
+        #region Destructor
+
+        /// <summary>
+        /// Finalizer to ensure resources are released if Dispose is not called.
+        /// </summary>
+        ~ShaderEffect()
+        {
+            Dispose();
         }
 
         #endregion

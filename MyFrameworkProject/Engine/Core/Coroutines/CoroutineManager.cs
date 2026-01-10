@@ -7,24 +7,54 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
     /// Manages the execution of all active coroutines.
     /// Provides methods to start, stop, and update coroutines each frame.
     /// </summary>
-    public class CoroutineManager
+    public sealed class CoroutineManager
     {
-        #region Fields
+        #region Fields - Coroutine Collections
 
         /// <summary>
         /// The list of all currently active coroutines.
         /// </summary>
-        private readonly List<Coroutine> _coroutines = [];
+        private readonly List<Coroutine> _coroutines;
 
         /// <summary>
         /// Pending coroutines to add, processed at the end of the frame to avoid collection modification during iteration.
         /// </summary>
-        private readonly List<Coroutine> _coroutinesToAdd = [];
+        private readonly List<Coroutine> _coroutinesToAdd;
 
         /// <summary>
         /// Pending coroutines to remove, processed at the end of the frame to avoid collection modification during iteration.
         /// </summary>
-        private readonly HashSet<Coroutine> _coroutinesToRemove = [];
+        private readonly HashSet<Coroutine> _coroutinesToRemove;
+
+        #endregion
+
+        #region Properties - Coroutine State
+
+        /// <summary>
+        /// Gets the number of currently active coroutines.
+        /// </summary>
+        public int ActiveCoroutineCount => _coroutines.Count;
+
+        /// <summary>
+        /// Gets whether there are any active coroutines.
+        /// </summary>
+        public bool HasActiveCoroutines => _coroutines.Count > 0;
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CoroutineManager"/> class.
+        /// </summary>
+        public CoroutineManager()
+        {
+            _coroutines = [];
+            _coroutinesToAdd = [];
+            _coroutinesToRemove = [];
+
+            Logger.Info("CoroutineManager initialized");
+        }
 
         #endregion
 
@@ -74,6 +104,8 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
             _coroutines.Clear();
             _coroutinesToAdd.Clear();
             _coroutinesToRemove.Clear();
+
+            Logger.Info("All coroutines stopped");
         }
 
         #endregion

@@ -1,5 +1,6 @@
-﻿using Microsoft.Xna.Framework.Audio;
-using System;
+﻿using System;
+
+using Microsoft.Xna.Framework.Audio;
 
 namespace MyFrameworkProject.Engine.Audio
 {
@@ -8,7 +9,7 @@ namespace MyFrameworkProject.Engine.Audio
     /// Wraps MonoGame's SoundEffect and SoundEffectInstance for advanced playback control.
     /// Supports volume, pitch, and pan adjustments, as well as looping capabilities.
     /// </summary>
-    public class Sound : IDisposable
+    public sealed class Sound : IDisposable
     {
         #region Fields - Audio
 
@@ -92,7 +93,7 @@ namespace MyFrameworkProject.Engine.Audio
 
         #endregion
 
-        #region Properties - State
+        #region Properties - Playback State
 
         /// <summary>
         /// Gets whether the sound is currently playing.

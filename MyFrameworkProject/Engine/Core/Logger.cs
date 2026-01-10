@@ -3,7 +3,7 @@
 namespace MyFrameworkProject.Engine.Core
 {
     /// <summary>
-    /// Provides a simple logging system for outputting categorized messages to the console.
+    /// Provides a simple logging system for outputting categorized messages to the debug console.
     /// Supports three log levels: Info, Warning, and Error.
     /// This is a static utility class intended for debugging and diagnostic purposes.
     /// </summary>
@@ -12,7 +12,7 @@ namespace MyFrameworkProject.Engine.Core
         #region Public Methods - Logging
 
         /// <summary>
-        /// Logs an informational message to the console.
+        /// Logs an informational message to the debug console.
         /// Use this for general information about application flow and state.
         /// </summary>
         /// <param name="message">The informational message to log.</param>
@@ -22,7 +22,7 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         /// <summary>
-        /// Logs a warning message to the console.
+        /// Logs a warning message to the debug console.
         /// Use this for potentially problematic situations that don't prevent execution.
         /// </summary>
         /// <param name="message">The warning message to log.</param>
@@ -32,7 +32,7 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         /// <summary>
-        /// Logs an error message to the console.
+        /// Logs an error message to the debug console.
         /// Use this for error conditions and exceptions that require attention.
         /// </summary>
         /// <param name="message">The error message to log.</param>
@@ -43,10 +43,10 @@ namespace MyFrameworkProject.Engine.Core
 
         #endregion
 
-        #region Private Methods
+        #region Private Methods - Helpers
 
         /// <summary>
-        /// Writes a formatted log message to the console with the specified level prefix.
+        /// Writes a formatted log message to the debug console with the specified level prefix.
         /// Output format: [LEVEL] message
         /// </summary>
         /// <param name="level">The log level prefix (e.g., "INFO", "WARN", "ERROR").</param>

@@ -1,26 +1,21 @@
-﻿using MyFrameworkProject.Engine.Audio;
+﻿using System.Collections;
+using System.Threading;
+
+using MyFrameworkProject.Engine.Audio;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
 using MyFrameworkProject.Engine.Core.Coroutines;
-using System.Threading;
-using System.Collections;
 
 namespace MyFrameworkProject.Engine.Components
 {
     /// <summary>
     /// Represents a game object with update lifecycle methods and unique identification.
     /// Extends Entity with BeforeUpdate, Update, and AfterUpdate virtual methods for custom game logic.
-    /// Provides static access to the input manager for convenient input queries in derived classes.
+    /// Provides static access to input, audio, and coroutine systems for convenient usage in derived classes.
     /// </summary>
     public class GameObject : Entity
     {
-        #region Static Fields
-
-        /// <summary>
-        /// Global counter used to generate unique identifiers for each game object instance.
-        /// Uses Interlocked for thread-safe increment operations.
-        /// </summary>
-        private static int _counter = 0;
+        #region Static Fields - Systems
 
         /// <summary>
         /// Static reference to the input manager for convenient access in all game objects.
@@ -28,23 +23,17 @@ namespace MyFrameworkProject.Engine.Components
         /// </summary>
         protected static InputManager Input { get; private set; }
 
+        /// <summary>
+        /// Static reference to the audio manager for convenient access in all game objects.
+        /// Set by the GameLoop during initialization.
+        /// </summary>
         protected static AudioManager Audio { get; private set; }
 
+        /// <summary>
+        /// Static reference to the coroutine manager for convenient access in all game objects.
+        /// Set by the GameLoop during initialization.
+        /// </summary>
         protected static CoroutineManager Coroutines { get; private set; }
-
-        #endregion
-
-        #region Fields - Identity
-
-        /// <summary>
-        /// Unique identifier for this game object instance.
-        /// </summary>
-        private readonly uint _gameId;
-
-        /// <summary>
-        /// Gets the unique identifier for this game object instance.
-        /// </summary>
-        public uint Id => _gameId;
 
         #endregion
 
@@ -54,6 +43,10 @@ namespace MyFrameworkProject.Engine.Components
         /// Indicates whether this game object is active and should be updated.
         /// </summary>
         private bool _active = true;
+
+        #endregion
+
+        #region Properties - State
 
         /// <summary>
         /// Gets whether this game object is active and should be updated.
@@ -66,21 +59,19 @@ namespace MyFrameworkProject.Engine.Components
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameObject"/> class.
-        /// Generates a unique ID and sets the game object as active by default.
+        /// Sets the game object as active by default.
         /// </summary>
         public GameObject() : base()
         {
-            _gameId = (uint)Interlocked.Increment(ref _counter);
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameObject"/> class with the specified sprite.
-        /// Generates a unique ID and sets the game object as active by default.
+        /// Sets the game object as active by default.
         /// </summary>
         /// <param name="sprite">The sprite to assign to this game object.</param>
         public GameObject(Sprite sprite) : base(sprite)
         {
-            _gameId = (uint)Interlocked.Increment(ref _counter);
         }
 
         #endregion
@@ -97,11 +88,21 @@ namespace MyFrameworkProject.Engine.Components
             Input = inputManager;
         }
 
+        /// <summary>
+        /// Initializes the static audio reference for all game objects.
+        /// Called internally by the GameLoop during initialization.
+        /// </summary>
+        /// <param name="audioManager">The audio manager instance to use for all game objects.</param>
         internal static void InitializeAudio(AudioManager audioManager)
         {
             Audio = audioManager;
         }
 
+        /// <summary>
+        /// Initializes the static coroutine reference for all game objects.
+        /// Called internally by the GameLoop during initialization.
+        /// </summary>
+        /// <param name="coroutineManager">The coroutine manager instance to use for all game objects.</param>
         internal static void InitializeCoroutines(CoroutineManager coroutineManager)
         {
             Coroutines = coroutineManager;
@@ -109,7 +110,7 @@ namespace MyFrameworkProject.Engine.Components
 
         #endregion
 
-        #region Public Methods - State
+        #region Public Methods - State Management
 
         /// <summary>
         /// Sets the active state of this game object.
@@ -121,14 +122,19 @@ namespace MyFrameworkProject.Engine.Components
             _active = active;
         }
 
+        #endregion
+
+        #region Public Methods - Coroutine Management
+
         /// <summary>
         /// Starts a new coroutine from an IEnumerator.
+        /// The coroutine will be executed over multiple frames.
         /// </summary>
         /// <param name="enumerator">The enumerator that defines the coroutine behavior.</param>
         /// <returns>The created coroutine instance that can be used to control execution.</returns>
         public Coroutine StartCoroutine(IEnumerator enumerator)
         {
-            return Coroutines.StartCoroutine(enumerator);
+            return Coroutines?.StartCoroutine(enumerator);
         }
 
         /// <summary>
@@ -137,15 +143,16 @@ namespace MyFrameworkProject.Engine.Components
         /// <param name="coroutine">The coroutine to stop.</param>
         public void StopCoroutine(Coroutine coroutine)
         {
-            Coroutines.StopCoroutine(coroutine);
+            Coroutines?.StopCoroutine(coroutine);
         }
 
         /// <summary>
-        /// Stops all running coroutines immediately.
+        /// Stops all running coroutines started by this game object.
+        /// Note: This stops ALL coroutines in the manager, not just those started by this object.
         /// </summary>
         public void StopAllCoroutines()
         {
-            Coroutines.StopAllCoroutines();
+            Coroutines?.StopAllCoroutines();
         }
 
         #endregion
@@ -155,6 +162,7 @@ namespace MyFrameworkProject.Engine.Components
         /// <summary>
         /// Called before the main Update method.
         /// Override this method to implement custom logic that should execute before the main update.
+        /// Useful for input processing or state preparation.
         /// </summary>
         /// <param name="deltaTime">The time elapsed since the last update, in seconds.</param>
         public virtual void BeforeUpdate(float deltaTime)
@@ -165,6 +173,7 @@ namespace MyFrameworkProject.Engine.Components
         /// <summary>
         /// Main update method called every frame.
         /// Override this method to implement custom game object behavior.
+        /// This is where most game logic should be implemented.
         /// </summary>
         /// <param name="deltaTime">The time elapsed since the last update, in seconds.</param>
         public virtual void Update(float deltaTime)
@@ -175,6 +184,7 @@ namespace MyFrameworkProject.Engine.Components
         /// <summary>
         /// Called after the main Update method.
         /// Override this method to implement custom logic that should execute after the main update.
+        /// Useful for physics resolution or final state adjustments.
         /// </summary>
         /// <param name="deltaTime">The time elapsed since the last update, in seconds.</param>
         public virtual void AfterUpdate(float deltaTime)

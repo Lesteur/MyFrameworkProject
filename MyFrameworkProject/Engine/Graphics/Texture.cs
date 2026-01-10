@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using System;
+
+using Microsoft.Xna.Framework.Graphics;
 
 namespace MyFrameworkProject.Engine.Graphics
 {
@@ -14,7 +16,7 @@ namespace MyFrameworkProject.Engine.Graphics
         /// <summary>
         /// The underlying MonoGame Texture2D that contains the actual texture data.
         /// </summary>
-        private readonly Texture2D _texture = texture;
+        private readonly Texture2D _texture = texture ?? throw new ArgumentNullException(nameof(texture));
 
         #endregion
 
@@ -24,17 +26,17 @@ namespace MyFrameworkProject.Engine.Graphics
         /// The cached width of the texture in pixels.
         /// Stored to avoid repeated property access on the native texture.
         /// </summary>
-        private readonly int _width = texture.Width;
+        private readonly int _width = texture?.Width ?? throw new ArgumentNullException(nameof(texture));
 
         /// <summary>
         /// The cached height of the texture in pixels.
         /// Stored to avoid repeated property access on the native texture.
         /// </summary>
-        private readonly int _height = texture.Height;
+        private readonly int _height = texture?.Height ?? throw new ArgumentNullException(nameof(texture));
 
         #endregion
 
-        #region Public Methods - Texture
+        #region Properties - Texture
 
         /// <summary>
         /// Gets the underlying MonoGame Texture2D for use with native rendering operations.
@@ -44,7 +46,7 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
-        #region Public Methods - Dimensions
+        #region Properties - Dimensions
 
         /// <summary>
         /// Gets the width of the texture in pixels.

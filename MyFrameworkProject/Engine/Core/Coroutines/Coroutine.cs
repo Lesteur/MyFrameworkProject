@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 
 namespace MyFrameworkProject.Engine.Core.Coroutines
 {
@@ -6,14 +7,18 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
     /// Represents a coroutine that can be executed over multiple frames.
     /// Wraps an IEnumerator to provide pause/resume functionality similar to Unity.
     /// </summary>
-    public class Coroutine
+    public sealed class Coroutine
     {
-        #region Fields
+        #region Fields - Execution
 
         /// <summary>
         /// The underlying enumerator that represents the coroutine execution.
         /// </summary>
         private readonly IEnumerator _enumerator;
+
+        #endregion
+
+        #region Fields - State
 
         /// <summary>
         /// Indicates whether this coroutine has completed execution.
@@ -27,7 +32,7 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
 
         #endregion
 
-        #region Properties
+        #region Properties - State
 
         /// <summary>
         /// Gets whether this coroutine has finished executing.
@@ -39,6 +44,11 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
         /// </summary>
         public bool IsPaused => _isPaused;
 
+        /// <summary>
+        /// Gets whether this coroutine is currently running (not paused and not finished).
+        /// </summary>
+        public bool IsRunning => !_isFinished && !_isPaused;
+
         #endregion
 
         #region Constructors
@@ -49,14 +59,14 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
         /// <param name="enumerator">The enumerator that represents the coroutine logic.</param>
         internal Coroutine(IEnumerator enumerator)
         {
-            _enumerator = enumerator;
+            _enumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
             _isFinished = false;
             _isPaused = false;
         }
 
         #endregion
 
-        #region Public Methods
+        #region Public Methods - Control
 
         /// <summary>
         /// Pauses the execution of this coroutine.
@@ -84,7 +94,7 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
 
         #endregion
 
-        #region Internal Methods
+        #region Internal Methods - Update
 
         /// <summary>
         /// Updates the coroutine by one step.
@@ -135,9 +145,18 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
     /// <summary>
     /// Yield instruction that waits for a specified number of seconds.
     /// </summary>
-    public class WaitForSeconds : IYieldInstruction
+    public sealed class WaitForSeconds : IYieldInstruction
     {
+        #region Fields
+
+        /// <summary>
+        /// The remaining time to wait in seconds.
+        /// </summary>
         private float _remainingTime;
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WaitForSeconds"/> class.
@@ -145,29 +164,48 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
         /// <param name="seconds">The number of seconds to wait.</param>
         public WaitForSeconds(float seconds)
         {
-            _remainingTime = seconds;
+            _remainingTime = Math.Max(0f, seconds);
         }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Checks if the wait time has elapsed.
         /// </summary>
+        /// <param name="deltaTime">The time elapsed since the last frame.</param>
+        /// <returns>True if the wait time has elapsed, false otherwise.</returns>
         public bool IsDone(float deltaTime)
         {
             _remainingTime -= deltaTime;
             return _remainingTime <= 0;
         }
+
+        #endregion
     }
 
     /// <summary>
     /// Yield instruction that waits for the next frame.
     /// </summary>
-    public class WaitForNextFrame : IYieldInstruction
+    public sealed class WaitForNextFrame : IYieldInstruction
     {
+        #region Fields
+
+        /// <summary>
+        /// Indicates whether one frame has passed.
+        /// </summary>
         private bool _hasWaited;
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Checks if one frame has passed.
         /// </summary>
+        /// <param name="deltaTime">The time elapsed since the last frame.</param>
+        /// <returns>True if one frame has passed, false otherwise.</returns>
         public bool IsDone(float deltaTime)
         {
             if (_hasWaited)
@@ -176,56 +214,92 @@ namespace MyFrameworkProject.Engine.Core.Coroutines
             _hasWaited = true;
             return false;
         }
+
+        #endregion
     }
 
     /// <summary>
     /// Yield instruction that waits until a condition becomes true.
     /// </summary>
-    public class WaitUntil : IYieldInstruction
+    public sealed class WaitUntil : IYieldInstruction
     {
-        private readonly System.Func<bool> _predicate;
+        #region Fields
+
+        /// <summary>
+        /// The condition to wait for.
+        /// </summary>
+        private readonly Func<bool> _predicate;
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WaitUntil"/> class.
         /// </summary>
         /// <param name="predicate">The condition to wait for.</param>
-        public WaitUntil(System.Func<bool> predicate)
+        public WaitUntil(Func<bool> predicate)
         {
-            _predicate = predicate;
+            _predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Checks if the condition is true.
         /// </summary>
+        /// <param name="deltaTime">The time elapsed since the last frame.</param>
+        /// <returns>True if the condition is true, false otherwise.</returns>
         public bool IsDone(float deltaTime)
         {
             return _predicate();
         }
+
+        #endregion
     }
 
     /// <summary>
     /// Yield instruction that waits while a condition is true.
     /// </summary>
-    public class WaitWhile : IYieldInstruction
+    public sealed class WaitWhile : IYieldInstruction
     {
-        private readonly System.Func<bool> _predicate;
+        #region Fields
+
+        /// <summary>
+        /// The condition to wait while true.
+        /// </summary>
+        private readonly Func<bool> _predicate;
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WaitWhile"/> class.
         /// </summary>
         /// <param name="predicate">The condition to wait while true.</param>
-        public WaitWhile(System.Func<bool> predicate)
+        public WaitWhile(Func<bool> predicate)
         {
-            _predicate = predicate;
+            _predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Checks if the condition is false.
         /// </summary>
+        /// <param name="deltaTime">The time elapsed since the last frame.</param>
+        /// <returns>True if the condition is false, false otherwise.</returns>
         public bool IsDone(float deltaTime)
         {
             return !_predicate();
         }
+
+        #endregion
     }
 
     #endregion

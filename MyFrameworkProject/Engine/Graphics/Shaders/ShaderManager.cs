@@ -1,8 +1,7 @@
-using Microsoft.Xna.Framework.Graphics;
-using MyFrameworkProject.Engine.Components;
-using MyFrameworkProject.Engine.Core;
 using System;
 using System.Collections.Generic;
+
+using MyFrameworkProject.Engine.Core;
 
 namespace MyFrameworkProject.Engine.Graphics.Shaders
 {
@@ -44,6 +43,22 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
 
         #endregion
 
+        #region Properties - Global Shader Access
+
+        /// <summary>
+        /// Gets the read-only list of global world shaders.
+        /// Used by the Renderer to apply shaders during world rendering.
+        /// </summary>
+        public IReadOnlyList<ShaderEffect> GlobalWorldShaders => _globalWorldShaders;
+
+        /// <summary>
+        /// Gets the read-only list of global UI shaders.
+        /// Used by the Renderer to apply shaders during UI rendering.
+        /// </summary>
+        public IReadOnlyList<ShaderEffect> GlobalUIShaders => _globalUIShaders;
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -51,9 +66,9 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
         /// </summary>
         public ShaderManager()
         {
-            _globalWorldShaders = new List<ShaderEffect>();
-            _globalUIShaders = new List<ShaderEffect>();
-            _namedShaders = new Dictionary<string, ShaderEffect>();
+            _globalWorldShaders = [];
+            _globalUIShaders = [];
+            _namedShaders = [];
 
             Logger.Info("ShaderManager initialized");
         }
@@ -133,6 +148,10 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
             return false;
         }
 
+        /// <summary>
+        /// Clears all named shaders and optionally disposes them.
+        /// </summary>
+        /// <param name="dispose">Whether to dispose all shader effects. Default is false as effects are managed by ContentManager.</param>
         public void ClearAllNamedShaders(bool dispose = false)
         {
             if (dispose)
@@ -142,13 +161,14 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
                     shader.Dispose();
                 }
             }
+
             _namedShaders.Clear();
             Logger.Info("All named shaders cleared");
         }
 
         #endregion
 
-        #region Public Methods - Global Shader Management
+        #region Public Methods - Global World Shader Management
 
         /// <summary>
         /// Adds a global shader that will be applied to all world-space entities.
@@ -203,6 +223,10 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
             _globalWorldShaders.Clear();
             Logger.Info("All global world shaders cleared");
         }
+
+        #endregion
+
+        #region Public Methods - Global UI Shader Management
 
         /// <summary>
         /// Adds a global shader that will be applied to all UI-space elements.
@@ -260,22 +284,6 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
 
         #endregion
 
-        #region Public Properties - Global Shader Access
-
-        /// <summary>
-        /// Gets the read-only list of global world shaders.
-        /// Used by the Renderer to apply shaders during world rendering.
-        /// </summary>
-        public IReadOnlyList<ShaderEffect> GlobalWorldShaders => _globalWorldShaders;
-
-        /// <summary>
-        /// Gets the read-only list of global UI shaders.
-        /// Used by the Renderer to apply shaders during UI rendering.
-        /// </summary>
-        public IReadOnlyList<ShaderEffect> GlobalUIShaders => _globalUIShaders;
-
-        #endregion
-
         #region IDisposable Implementation
 
         /// <summary>
@@ -293,6 +301,19 @@ namespace MyFrameworkProject.Engine.Graphics.Shaders
 
             _disposed = true;
             Logger.Info("ShaderManager disposed");
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+
+        #region Destructor
+
+        /// <summary>
+        /// Finalizer to ensure resources are released if Dispose is not called.
+        /// </summary>
+        ~ShaderManager()
+        {
+            Dispose();
         }
 
         #endregion

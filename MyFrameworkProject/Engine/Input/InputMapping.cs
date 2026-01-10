@@ -7,7 +7,7 @@ namespace MyFrameworkProject.Engine.Input
     /// Associates a single action with both keyboard keys and gamepad buttons,
     /// enabling unified input handling across multiple input devices.
     /// </summary>
-    internal struct InputMapping
+    public struct InputMapping
     {
         /// <summary>
         /// The logical input action this mapping represents.

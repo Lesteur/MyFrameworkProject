@@ -1,11 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
-
+using MyFrameworkProject.Assets;
+using MyFrameworkProject.Engine.Audio;
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Input;
-using MyFrameworkProject.Engine.Audio;
-
-using MyFrameworkProject.Assets;
+using System;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -63,11 +61,12 @@ namespace MyFrameworkProject.Engine.Core
 
         /// <summary>
         /// Gets the input manager that handles all input devices (keyboard, gamepad, mouse).
+        /// Provides unified access to all input systems.
         /// </summary>
         public InputManager Input { get; private set; }
 
         /// <summary>
-        /// Gets the audio manager that handles sound playback.
+        /// Gets the audio manager that handles sound playback and music.
         /// </summary>
         public AudioManager Audio { get; private set; }
 
@@ -76,6 +75,10 @@ namespace MyFrameworkProject.Engine.Core
         /// Provides access to world and UI cameras.
         /// </summary>
         public Renderer Renderer => _renderer;
+
+        #endregion
+
+        #region Properties - Room Management
 
         /// <summary>
         /// Gets the currently active game room.
@@ -121,16 +124,16 @@ namespace MyFrameworkProject.Engine.Core
 
         #endregion
 
-        #region MonoGame Lifecycle - Initialize
+        #region Protected Methods - MonoGame Lifecycle
 
         /// <summary>
         /// Initializes the application and all core engine systems.
         /// Called once after construction but before the first Update call.
-        /// Sets up input manager, renderer, time system, and game loop.
+        /// Sets up input manager, audio manager, renderer, time system, and game loop.
         /// </summary>
         protected override void Initialize()
         {
-            Logger.Info("Application initialized");
+            Logger.Info("Initializing application...");
 
             Input = new InputManager();
             Audio = new AudioManager();
@@ -139,17 +142,15 @@ namespace MyFrameworkProject.Engine.Core
             Time.Initialize();
             _gameLoop = new GameLoop(Input, Audio);
 
+            Logger.Info("Application initialized successfully");
+
             base.Initialize();
         }
-
-        #endregion
-
-        #region MonoGame Lifecycle - LoadContent
 
         /// <summary>
         /// Loads initial game content.
         /// Called once after Initialize and before the first Update call.
-        /// Override this method to load the initial room or perform initial setup.
+        /// Override this method in a derived class to load the initial room or perform initial setup.
         /// </summary>
         protected override void LoadContent()
         {
@@ -157,6 +158,77 @@ namespace MyFrameworkProject.Engine.Core
 
             // Override this in derived class to load initial room
             LoadRoom(new RoomTest());
+        }
+
+        /// <summary>
+        /// Updates the application state and all game systems.
+        /// Called once per frame (or at fixed intervals if using fixed time step).
+        /// Handles input processing, audio updates, time updates, and game loop updates.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values from MonoGame.</param>
+        protected override void Update(GameTime gameTime)
+        {
+            Input.Update();
+            Audio.Update();
+            Time.Update(gameTime);
+
+            if (_currentRoom != null && _currentRoom.IsLoaded)
+            {
+                _gameLoop.Update();
+            }
+
+            base.Update(gameTime);
+        }
+
+        /// <summary>
+        /// Renders the current frame to the screen.
+        /// Called once per frame after Update.
+        /// Begins the frame, updates camera position if following a target, delegates rendering to the game loop.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values from MonoGame.</param>
+        protected override void Draw(GameTime gameTime)
+        {
+            // Update camera to follow target if set
+            if (_currentRoom?.CameraTarget != null)
+            {
+                float targetX = _currentRoom.CameraTarget.Position.X;
+                float targetY = _currentRoom.CameraTarget.Position.Y;
+
+                float halfViewportWidth = _renderer.WorldCamera.ViewportWidth / 2f;
+                float halfViewportHeight = _renderer.WorldCamera.ViewportHeight / 2f;
+
+                float clampedX = Math.Clamp(targetX, halfViewportWidth, _currentRoom.Width - halfViewportWidth);
+                float clampedY = Math.Clamp(targetY, halfViewportHeight, _currentRoom.Height - halfViewportHeight);
+
+                _renderer.WorldCamera.SetPosition(clampedX, clampedY);
+            }
+
+            _renderer.BeginFrame();
+
+            if (_currentRoom != null && _currentRoom.IsLoaded)
+            {
+                _gameLoop.Draw(_renderer);
+            }
+
+            base.Draw(gameTime);
+        }
+
+        /// <summary>
+        /// Disposes resources when the application is closed.
+        /// Ensures proper cleanup of the current room before disposal.
+        /// </summary>
+        /// <param name="disposing">True if disposing managed resources.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Logger.Info("Disposing application...");
+                UnloadCurrentRoom();
+                _renderer?.Dispose();
+                Audio?.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
 
         #endregion
@@ -186,92 +258,21 @@ namespace MyFrameworkProject.Engine.Core
             _currentRoom = room;
             _currentRoom.Initialize(_gameLoop, Content);
 
-            Logger.Info($"Room {room.GetType().Name} is now active");
+            Logger.Info($"Room '{room.GetType().Name}' is now active");
         }
 
         /// <summary>
         /// Unloads the current room without loading a new one.
+        /// Useful for returning to a menu state or cleaning up before application exit.
         /// </summary>
         public void UnloadCurrentRoom()
         {
             if (_currentRoom != null)
             {
+                Logger.Info($"Unloading current room: {_currentRoom.GetType().Name}");
                 _currentRoom.Cleanup();
                 _currentRoom = null;
             }
-        }
-
-        #endregion
-
-        #region MonoGame Lifecycle - Update
-
-        /// <summary>
-        /// Updates the application state and all game systems.
-        /// Called once per frame (or at fixed intervals if using fixed time step).
-        /// Handles input processing, time updates, and game loop updates.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values from MonoGame.</param>
-        protected override void Update(GameTime gameTime)
-        {
-            Input.Update();
-            Audio.Update();
-            Time.Update(gameTime);
-
-            if (_currentRoom != null && _currentRoom.IsLoaded)
-            {
-                _gameLoop.Update();
-            }
-
-            base.Update(gameTime);
-        }
-
-        #endregion
-
-        #region MonoGame Lifecycle - Draw
-
-        /// <summary>
-        /// Renders the current frame to the screen.
-        /// Called once per frame after Update.
-        /// Begins the frame, delegates rendering to the game loop, and finalizes the frame.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values from MonoGame.</param>
-        protected override void Draw(GameTime gameTime)
-        {
-            // Update camera to follow target if set
-            if (_currentRoom?.CameraTarget != null)
-            {
-                var x = Math.Clamp(_currentRoom.CameraTarget.Position.X, _renderer.WorldCamera.ViewportWidth / 2, _currentRoom.Width - _renderer.WorldCamera.ViewportWidth / 2);
-                var y = Math.Clamp(_currentRoom.CameraTarget.Position.Y, _renderer.WorldCamera.ViewportHeight / 2, _currentRoom.Height - _renderer.WorldCamera.ViewportHeight / 2);
-
-                Renderer.WorldCamera.SetPosition(x, y);
-            }
-
-            _renderer.BeginFrame();
-
-            if (_currentRoom != null && _currentRoom.IsLoaded)
-            {
-                _gameLoop.Draw(_renderer);
-            }
-
-            base.Draw(gameTime);
-        }
-
-        #endregion
-
-        #region MonoGame Lifecycle - Dispose
-
-        /// <summary>
-        /// Disposes resources when the application is closed.
-        /// </summary>
-        /// <param name="disposing">True if disposing managed resources.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                UnloadCurrentRoom();
-            }
-
-            base.Dispose(disposing);
         }
 
         #endregion

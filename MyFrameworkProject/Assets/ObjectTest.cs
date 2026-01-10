@@ -138,7 +138,7 @@ namespace MyFrameworkProject.Assets
         protected virtual void OnConfirmPressed()
         {
             // Example: Log or trigger specific behavior
-            Logger.Info($"ObjectTest {Id}: Confirm pressed at position ({X}, {Y})");
+            Logger.Info($"ObjectTest : Confirm pressed at position ({X}, {Y})");
             StartCoroutine(MyCoroutine());
         }
 
@@ -149,7 +149,7 @@ namespace MyFrameworkProject.Assets
         protected virtual void OnCancelPressed()
         {
             // Example: Deactivate or perform cancel action
-            Logger.Info($"ObjectTest {Id}: Cancel pressed");
+            Logger.Info($"ObjectTest : Cancel pressed");
         }
 
         private IEnumerator MyCoroutine()
