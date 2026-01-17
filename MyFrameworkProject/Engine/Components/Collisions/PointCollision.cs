@@ -6,22 +6,10 @@ namespace MyFrameworkProject.Engine.Components.Collisions
     /// Represents a point collision mask for precise collision detection.
     /// The simplest collision primitive, representing a single point in 2D space.
     /// Useful for projectiles, pickup detection, or precise interaction points.
-    /// </summary>
-    public sealed class PointCollision : CollisionMask
+    /// <param name="offsetX">The X-coordinate offset from the parent entity. Defaults to 0.</param>
+    /// <param name="offsetY">The Y-coordinate offset from the parent entity. Defaults to 0.</param>
+    public sealed class PointCollision(float offsetX = 0f, float offsetY = 0f) : CollisionMask(offsetX, offsetY)
     {
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PointCollision"/> class.
-        /// </summary>
-        /// <param name="offsetX">The X-coordinate offset from the parent entity. Defaults to 0.</param>
-        /// <param name="offsetY">The Y-coordinate offset from the parent entity. Defaults to 0.</param>
-        public PointCollision(float offsetX = 0f, float offsetY = 0f) : base(offsetX, offsetY)
-        {
-        }
-
-        #endregion
-
         #region Internal Methods - Collision Detection
 
         /// <summary>

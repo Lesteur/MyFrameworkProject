@@ -7,58 +7,40 @@ namespace MyFrameworkProject.Engine.Components.Collisions
     /// Defined by width and height, with the offset representing the top-left corner.
     /// Highly efficient for most game collision scenarios.
     /// </summary>
-    public sealed class RectangleCollision : CollisionMask
+    /// <param name="offsetX">The X-coordinate offset (left edge). Defaults to 0.</param>
+    /// <param name="offsetY">The Y-coordinate offset (top edge). Defaults to 0.</param>
+    /// <param name="width">The width of the rectangle. Defaults to 1.</param>
+    /// <param name="height">The height of the rectangle. Defaults to 1.</param>
+    public sealed class RectangleCollision(float offsetX = 0f, float offsetY = 0f, float width = 1f, float height = 1f) : CollisionMask(offsetX, offsetY)
     {
         #region Fields - Dimensions
 
         /// <summary>
         /// The width of the rectangle.
         /// </summary>
-        private float _width;
+        private float _width = Math.Max(0f, width);
 
         /// <summary>
         /// The height of the rectangle.
         /// </summary>
-        private float _height;
+        private float _height = Math.Max(0f, height);
 
         #endregion
 
         #region Properties - Dimensions
 
         /// <summary>
-        /// Gets or sets the width of the rectangle.
+        /// Gets the width of the rectangle.
         /// </summary>
-        public float Width
-        {
-            get => _width;
-            set => _width = Math.Max(0f, value);
-        }
+        public float Width => _width;
 
         /// <summary>
-        /// Gets or sets the height of the rectangle.
+        /// Gets the height of the rectangle.
         /// </summary>
-        public float Height
-        {
-            get => _height;
-            set => _height = Math.Max(0f, value);
-        }
+        public float Height => _height;
 
         #endregion
-
         #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RectangleCollision"/> class.
-        /// </summary>
-        /// <param name="offsetX">The X-coordinate offset (left edge). Defaults to 0.</param>
-        /// <param name="offsetY">The Y-coordinate offset (top edge). Defaults to 0.</param>
-        /// <param name="width">The width of the rectangle. Defaults to 1.</param>
-        /// <param name="height">The height of the rectangle. Defaults to 1.</param>
-        public RectangleCollision(float offsetX = 0f, float offsetY = 0f, float width = 1f, float height = 1f) : base(offsetX, offsetY)
-        {
-            _width = Math.Max(0f, width);
-            _height = Math.Max(0f, height);
-        }
 
         #endregion
 

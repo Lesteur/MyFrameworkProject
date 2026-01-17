@@ -7,47 +7,31 @@ namespace MyFrameworkProject.Engine.Components.Collisions
     /// Defined by a center point (offset) and a radius.
     /// Ideal for circular objects, explosions, or radial area effects.
     /// </summary>
-    public sealed class CircleCollision : CollisionMask
+    /// <param name="offsetX">The X-coordinate of the circle's center. Defaults to 0.</param>
+    /// <param name="offsetY">The Y-coordinate of the circle's center. Defaults to 0.</param>
+    /// <param name="radius">The radius of the circle. Defaults to 1.</param>
+    public sealed class CircleCollision(float offsetX = 0f, float offsetY = 0f, float radius = 1f) : CollisionMask(offsetX, offsetY)
     {
         #region Fields - Dimensions
 
         /// <summary>
         /// The radius of the circle.
         /// </summary>
-        private float _radius;
+        private float _radius = Math.Max(0f, radius);
 
         #endregion
 
         #region Properties - Dimensions
 
         /// <summary>
-        /// Gets or sets the radius of the circle.
+        /// Gets the radius of the circle.
         /// </summary>
-        public float Radius
-        {
-            get => _radius;
-            set => _radius = Math.Max(0f, value);
-        }
+        public float Radius => _radius;
 
         /// <summary>
         /// Gets the diameter of the circle (twice the radius).
         /// </summary>
         public float Diameter => _radius * 2f;
-
-        #endregion
-
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CircleCollision"/> class.
-        /// </summary>
-        /// <param name="offsetX">The X-coordinate of the circle's center. Defaults to 0.</param>
-        /// <param name="offsetY">The Y-coordinate of the circle's center. Defaults to 0.</param>
-        /// <param name="radius">The radius of the circle. Defaults to 1.</param>
-        public CircleCollision(float offsetX = 0f, float offsetY = 0f, float radius = 1f) : base(offsetX, offsetY)
-        {
-            _radius = Math.Max(0f, radius);
-        }
 
         #endregion
 

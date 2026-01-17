@@ -7,69 +7,40 @@ namespace MyFrameworkProject.Engine.Components.Collisions
     /// Provides common functionality for collision detection with position and origin point support.
     /// Collision masks can be attached to game objects to enable 2D physics and collision detection.
     /// </summary>
-    public abstract class CollisionMask
+    /// <param name="offsetX">The X-coordinate offset from the parent entity. Defaults to 0.</param>
+    /// <param name="offsetY">The Y-coordinate offset from the parent entity. Defaults to 0.</param>
+    public abstract class CollisionMask(float offsetX = 0f, float offsetY = 0f)
     {
         #region Fields - Transform
 
         /// <summary>
         /// The X-coordinate offset from the parent entity's position.
         /// </summary>
-        protected float _offsetX;
+        protected float _offsetX = offsetX;
 
         /// <summary>
         /// The Y-coordinate offset from the parent entity's position.
         /// </summary>
-        protected float _offsetY;
+        protected float _offsetY = offsetY;
 
         #endregion
 
         #region Properties - Transform
 
         /// <summary>
-        /// Gets or sets the X-coordinate offset from the parent entity's position.
+        /// Gets the X-coordinate offset from the parent entity's position.
         /// </summary>
-        public float OffsetX
-        {
-            get => _offsetX;
-            set => _offsetX = value;
-        }
+        public float OffsetX => _offsetX;
 
         /// <summary>
-        /// Gets or sets the Y-coordinate offset from the parent entity's position.
+        /// Gets the Y-coordinate offset from the parent entity's position.
         /// </summary>
-        public float OffsetY
-        {
-            get => _offsetY;
-            set => _offsetY = value;
-        }
+        public float OffsetY => _offsetY;
 
         /// <summary>
-        /// Gets or sets the offset as a Vector2.
+        /// Gets the offset as a Vector2.
         /// </summary>
-        public Vector2 Offset
-        {
-            get => new(_offsetX, _offsetY);
-            set
-            {
-                _offsetX = value.X;
-                _offsetY = value.Y;
-            }
-        }
-
-        #endregion
-
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CollisionMask"/> class.
-        /// </summary>
-        /// <param name="offsetX">The X-coordinate offset from the parent entity. Defaults to 0.</param>
-        /// <param name="offsetY">The Y-coordinate offset from the parent entity. Defaults to 0.</param>
-        protected CollisionMask(float offsetX = 0f, float offsetY = 0f)
-        {
-            _offsetX = offsetX;
-            _offsetY = offsetY;
-        }
+        public Vector2 Offset => new Vector2(_offsetX, _offsetY);
 
         #endregion
 

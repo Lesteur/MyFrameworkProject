@@ -452,7 +452,7 @@ namespace MyFrameworkProject.Engine.Components
                 if (!obj.Visible)
                     continue;
 
-                GameObject gameObject = null;
+                GameObject gameObject;
 
                 // Use custom factory if provided
                 if (objectFactory != null)

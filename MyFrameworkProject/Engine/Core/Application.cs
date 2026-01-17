@@ -15,6 +15,15 @@ namespace MyFrameworkProject.Engine.Core
     /// </summary>
     public class Application : Game
     {
+        #region Fields - Singleton
+
+        /// <summary>
+        /// The singleton instance of the application.
+        /// </summary>
+        private static Application _instance;
+
+        #endregion
+
         #region Fields - Graphics
 
         /// <summary>
@@ -59,7 +68,7 @@ namespace MyFrameworkProject.Engine.Core
         /// Gets the singleton instance of the application.
         /// Provides global access to the application throughout the game.
         /// </summary>
-        public static Application Instance { get; private set; }
+        public static Application Instance => _instance;
 
         #endregion
 
@@ -111,7 +120,7 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         public Application()
         {
-            Instance = this;
+            _instance = this;
 
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";

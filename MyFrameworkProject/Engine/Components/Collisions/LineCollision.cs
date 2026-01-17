@@ -7,59 +7,37 @@ namespace MyFrameworkProject.Engine.Components.Collisions
     /// Defined by a starting point and an ending point, forming a line segment in 2D space.
     /// Useful for raycasting, wall collision, or sweep detection.
     /// </summary>
-    public sealed class LineCollision : CollisionMask
+    /// <param name="offsetX">The X-coordinate of the line's start point. Defaults to 0.</param>
+    /// <param name="offsetY">The Y-coordinate of the line's start point. Defaults to 0.</param>
+    /// <param name="x2">The X-coordinate of the line's end point. Defaults to 0.</param>
+    /// <param name="y2">The Y-coordinate of the line's end point. Defaults to 0.</param>
+    public sealed class LineCollision(float offsetX = 0f, float offsetY = 0f, float x2 = 0f, float y2 = 0f) : CollisionMask(offsetX, offsetY)
     {
         #region Fields - Line Definition
 
         /// <summary>
         /// The X-coordinate of the line's end point relative to the offset.
         /// </summary>
-        private float _x2;
+        private float _x2 = x2;
 
         /// <summary>
         /// The Y-coordinate of the line's end point relative to the offset.
         /// </summary>
-        private float _y2;
+        private float _y2 = y2;
 
         #endregion
 
         #region Properties - Line Definition
 
         /// <summary>
-        /// Gets or sets the X-coordinate of the line's end point.
+        /// Gets the X-coordinate of the line's end point.
         /// </summary>
-        public float X2
-        {
-            get => _x2;
-            set => _x2 = value;
-        }
+        public float X2 => _x2;
 
         /// <summary>
-        /// Gets or sets the Y-coordinate of the line's end point.
+        /// Gets the Y-coordinate of the line's end point.
         /// </summary>
-        public float Y2
-        {
-            get => _y2;
-            set => _y2 = value;
-        }
-
-        #endregion
-
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LineCollision"/> class.
-        /// The line starts at (offsetX, offsetY) and ends at (x2, y2).
-        /// </summary>
-        /// <param name="offsetX">The X-coordinate of the line's start point. Defaults to 0.</param>
-        /// <param name="offsetY">The Y-coordinate of the line's start point. Defaults to 0.</param>
-        /// <param name="x2">The X-coordinate of the line's end point. Defaults to 0.</param>
-        /// <param name="y2">The Y-coordinate of the line's end point. Defaults to 0.</param>
-        public LineCollision(float offsetX = 0f, float offsetY = 0f, float x2 = 0f, float y2 = 0f) : base(offsetX, offsetY)
-        {
-            _x2 = x2;
-            _y2 = y2;
-        }
+        public float Y2 => _y2;
 
         #endregion
 
