@@ -61,20 +61,11 @@ namespace MyFrameworkProject.Engine.Components.Collisions
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CollisionMask"/> class with default offset (0, 0).
+        /// Initializes a new instance of the <see cref="CollisionMask"/> class.
         /// </summary>
-        protected CollisionMask()
-        {
-            _offsetX = 0f;
-            _offsetY = 0f;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CollisionMask"/> class with the specified offset.
-        /// </summary>
-        /// <param name="offsetX">The X-coordinate offset.</param>
-        /// <param name="offsetY">The Y-coordinate offset.</param>
-        protected CollisionMask(float offsetX, float offsetY)
+        /// <param name="offsetX">The X-coordinate offset from the parent entity. Defaults to 0.</param>
+        /// <param name="offsetY">The Y-coordinate offset from the parent entity. Defaults to 0.</param>
+        protected CollisionMask(float offsetX = 0f, float offsetY = 0f)
         {
             _offsetX = offsetX;
             _offsetY = offsetY;

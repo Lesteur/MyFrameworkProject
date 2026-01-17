@@ -84,7 +84,9 @@ namespace MyFrameworkProject.Assets
             player.SetDrawDebug(true); // Enable debug drawing
 
             //CollisionMask mask = new CircleCollision(player.Sprite.FrameWidth / 2, player.Sprite.FrameHeight / 2, player.Sprite.FrameWidth / 2);
-            CollisionMask mask = new RectangleCollision(player.Sprite.FrameWidth, player.Sprite.FrameHeight);
+            CollisionMask mask = new RectangleCollision(width:player.Sprite.FrameWidth, height:player.Sprite.FrameHeight);
+            // CollisionMask mask = new PointCollision();
+            //CollisionMask mask = new LineCollision(0, 10, 30, 0);
             player.SetCollisionMask(mask);
 
             // Set camera to follow the player
@@ -101,7 +103,7 @@ namespace MyFrameworkProject.Assets
             collisionObject.SetPosition((int)tiledObject.X, (int)tiledObject.Y);
             collisionObject.SetDrawDebug(true); // Enable debug drawing for walls
             
-            CollisionMask mask = new RectangleCollision(tiledObject.Width, tiledObject.Height);
+            CollisionMask mask = new RectangleCollision(width:tiledObject.Width, height:tiledObject.Height);
             collisionObject.SetCollisionMask(mask);
 
             Logger.Info($"Collision object created at ({tiledObject.X}, {tiledObject.Y}) with size ({tiledObject.Width}, {tiledObject.Height})");

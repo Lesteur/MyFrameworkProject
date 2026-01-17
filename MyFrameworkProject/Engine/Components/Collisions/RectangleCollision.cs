@@ -49,36 +49,13 @@ namespace MyFrameworkProject.Engine.Components.Collisions
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RectangleCollision"/> class.
-        /// Creates a 1x1 rectangle at the origin.
         /// </summary>
-        public RectangleCollision() : base()
+        /// <param name="offsetX">The X-coordinate offset (left edge). Defaults to 0.</param>
+        /// <param name="offsetY">The Y-coordinate offset (top edge). Defaults to 0.</param>
+        /// <param name="width">The width of the rectangle. Defaults to 1.</param>
+        /// <param name="height">The height of the rectangle. Defaults to 1.</param>
+        public RectangleCollision(float offsetX = 0f, float offsetY = 0f, float width = 1f, float height = 1f) : base(offsetX, offsetY)
         {
-            _width = 1f;
-            _height = 1f;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RectangleCollision"/> class with the specified dimensions.
-        /// </summary>
-        /// <param name="width">The width of the rectangle.</param>
-        /// <param name="height">The height of the rectangle.</param>
-        public RectangleCollision(float width, float height) : base()
-        {
-            _width = Math.Max(0f, width);
-            _height = Math.Max(0f, height);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RectangleCollision"/> class with the specified position and dimensions.
-        /// </summary>
-        /// <param name="offsetX">The X-coordinate offset (left edge).</param>
-        /// <param name="offsetY">The Y-coordinate offset (top edge).</param>
-        /// <param name="width">The width of the rectangle.</param>
-        /// <param name="height">The height of the rectangle.</param>
-        public RectangleCollision(float offsetX, float offsetY, float width, float height) : base(offsetX, offsetY)
-        {
-            _offsetX = offsetX;
-            _offsetY = offsetY;
             _width = Math.Max(0f, width);
             _height = Math.Max(0f, height);
         }

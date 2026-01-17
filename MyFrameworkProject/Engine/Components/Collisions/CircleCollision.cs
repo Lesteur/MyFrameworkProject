@@ -40,29 +40,11 @@ namespace MyFrameworkProject.Engine.Components.Collisions
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CircleCollision"/> class.
-        /// Creates a circle with radius 1 at the origin.
         /// </summary>
-        public CircleCollision() : base()
-        {
-            _radius = 1f;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CircleCollision"/> class with the specified radius.
-        /// </summary>
-        /// <param name="radius">The radius of the circle.</param>
-        public CircleCollision(float radius) : base()
-        {
-            _radius = Math.Max(0f, radius);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CircleCollision"/> class with the specified center and radius.
-        /// </summary>
-        /// <param name="offsetX">The X-coordinate of the circle's center.</param>
-        /// <param name="offsetY">The Y-coordinate of the circle's center.</param>
-        /// <param name="radius">The radius of the circle.</param>
-        public CircleCollision(float offsetX, float offsetY, float radius) : base(offsetX, offsetY)
+        /// <param name="offsetX">The X-coordinate of the circle's center. Defaults to 0.</param>
+        /// <param name="offsetY">The Y-coordinate of the circle's center. Defaults to 0.</param>
+        /// <param name="radius">The radius of the circle. Defaults to 1.</param>
+        public CircleCollision(float offsetX = 0f, float offsetY = 0f, float radius = 1f) : base(offsetX, offsetY)
         {
             _radius = Math.Max(0f, radius);
         }

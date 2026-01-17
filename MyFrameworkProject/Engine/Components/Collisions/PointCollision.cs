@@ -12,18 +12,11 @@ namespace MyFrameworkProject.Engine.Components.Collisions
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PointCollision"/> class at the origin.
+        /// Initializes a new instance of the <see cref="PointCollision"/> class.
         /// </summary>
-        public PointCollision() : base()
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PointCollision"/> class with the specified offset.
-        /// </summary>
-        /// <param name="offsetX">The X-coordinate offset from the parent entity.</param>
-        /// <param name="offsetY">The Y-coordinate offset from the parent entity.</param>
-        public PointCollision(float offsetX, float offsetY) : base(offsetX, offsetY)
+        /// <param name="offsetX">The X-coordinate offset from the parent entity. Defaults to 0.</param>
+        /// <param name="offsetY">The Y-coordinate offset from the parent entity. Defaults to 0.</param>
+        public PointCollision(float offsetX = 0f, float offsetY = 0f) : base(offsetX, offsetY)
         {
         }
 

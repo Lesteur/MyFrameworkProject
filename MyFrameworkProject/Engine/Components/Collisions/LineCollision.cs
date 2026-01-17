@@ -49,23 +49,13 @@ namespace MyFrameworkProject.Engine.Components.Collisions
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LineCollision"/> class.
-        /// Creates a line from (0, 0) to (0, 0) - should be configured after creation.
-        /// </summary>
-        public LineCollision() : base()
-        {
-            _x2 = 0f;
-            _y2 = 0f;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LineCollision"/> class with the specified endpoints.
         /// The line starts at (offsetX, offsetY) and ends at (x2, y2).
         /// </summary>
-        /// <param name="offsetX">The X-coordinate of the line's start point.</param>
-        /// <param name="offsetY">The Y-coordinate of the line's start point.</param>
-        /// <param name="x2">The X-coordinate of the line's end point.</param>
-        /// <param name="y2">The Y-coordinate of the line's end point.</param>
-        public LineCollision(float offsetX, float offsetY, float x2, float y2) : base(offsetX, offsetY)
+        /// <param name="offsetX">The X-coordinate of the line's start point. Defaults to 0.</param>
+        /// <param name="offsetY">The Y-coordinate of the line's start point. Defaults to 0.</param>
+        /// <param name="x2">The X-coordinate of the line's end point. Defaults to 0.</param>
+        /// <param name="y2">The Y-coordinate of the line's end point. Defaults to 0.</param>
+        public LineCollision(float offsetX = 0f, float offsetY = 0f, float x2 = 0f, float y2 = 0f) : base(offsetX, offsetY)
         {
             _x2 = x2;
             _y2 = y2;
