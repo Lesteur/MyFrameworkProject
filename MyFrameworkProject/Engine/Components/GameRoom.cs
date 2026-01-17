@@ -18,7 +18,7 @@ namespace MyFrameworkProject.Engine.Components
     /// </summary>
     /// <param name="width">The width of the room in pixels.</param>
     /// <param name="height">The height of the room in pixels.</param>
-    public abstract class GameRoom(int width, int height)
+    public abstract class GameRoom(int width, int height) : IDisposable
     {
         #region Fields - Dimensions
 
@@ -99,7 +99,7 @@ namespace MyFrameworkProject.Engine.Components
 
         /// <summary>
         /// Initializes the room with required systems and loads resources.
-        /// Called internally by the Application when the room becomes active.
+        /// Called internally by the SceneManager when the room becomes active.
         /// </summary>
         /// <param name="gameLoop">The game loop to use for this room.</param>
         /// <param name="content">The content manager for loading resources.</param>
@@ -116,14 +116,16 @@ namespace MyFrameworkProject.Engine.Components
 
             Logger.Info($"Loading room: {GetType().Name}");
 
+            OnBeforeLoad();
             Load();
+            OnAfterLoad();
 
             IsLoaded = true;
         }
 
         /// <summary>
         /// Unloads the room and disposes all loaded resources.
-        /// Called internally by the Application when the room becomes inactive.
+        /// Called internally by the SceneManager when the room becomes inactive.
         /// </summary>
         internal void Cleanup()
         {
@@ -135,6 +137,7 @@ namespace MyFrameworkProject.Engine.Components
 
             Logger.Info($"Unloading room: {GetType().Name}");
 
+            OnBeforeUnload();
             Unload();
 
             // Clear all entities and game objects from the game loop
@@ -147,6 +150,8 @@ namespace MyFrameworkProject.Engine.Components
             }
             _disposableResources.Clear();
 
+            OnAfterUnload();
+
             IsLoaded = false;
             CameraTarget = null;
 
@@ -158,19 +163,36 @@ namespace MyFrameworkProject.Engine.Components
         #region Protected Methods - Room Lifecycle
 
         /// <summary>
+        /// Called before the Load method. Override this to perform pre-loading setup.
+        /// </summary>
+        protected virtual void OnBeforeLoad() { }
+
+        /// <summary>
         /// Called when the room is loaded. Override this to load room-specific resources and create entities.
         /// Use <see cref="Content"/> to load assets and <see cref="GameLoop"/> to add entities.
         /// </summary>
         protected abstract void Load();
 
         /// <summary>
+        /// Called after the Load method. Override this to perform post-loading setup.
+        /// </summary>
+        protected virtual void OnAfterLoad() { }
+
+        /// <summary>
+        /// Called before the Unload method. Override this to perform pre-unload cleanup.
+        /// </summary>
+        protected virtual void OnBeforeUnload() { }
+
+        /// <summary>
         /// Called when the room is unloaded. Override this to perform custom cleanup logic.
         /// Resources are automatically disposed, but you can use this for custom cleanup.
         /// </summary>
-        protected virtual void Unload()
-        {
-            // Custom cleanup logic
-        }
+        protected virtual void Unload() { }
+
+        /// <summary>
+        /// Called after the Unload method. Override this to perform post-unload cleanup.
+        /// </summary>
+        protected virtual void OnAfterUnload() { }
 
         #endregion
 
@@ -451,6 +473,23 @@ namespace MyFrameworkProject.Engine.Components
                     Logger.Info($"Created object: {obj.Name} ({obj.Type}) at ({obj.X}, {obj.Y})");
                 }
             }
+        }
+
+        #endregion
+
+        #region IDisposable Implementation
+
+        /// <summary>
+        /// Disposes the room and its resources.
+        /// </summary>
+        public void Dispose()
+        {
+            if (IsLoaded)
+            {
+                Cleanup();
+            }
+
+            GC.SuppressFinalize(this);
         }
 
         #endregion

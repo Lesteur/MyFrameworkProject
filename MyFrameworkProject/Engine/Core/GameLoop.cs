@@ -123,6 +123,7 @@ namespace MyFrameworkProject.Engine.Core
 
         /// <summary>
         /// Clears all game objects and tilemaps from the game loop immediately.
+        /// Also clears all pending operations.
         /// </summary>
         public void ClearGameObjects()
         {
@@ -131,6 +132,8 @@ namespace MyFrameworkProject.Engine.Core
             _tilemaps.Clear();
             _gameObjectsToAdd.Clear();
             _gameObjectsToRemove.Clear();
+            
+            Logger.Info("GameLoop cleared");
         }
 
         /// <summary>
@@ -161,12 +164,12 @@ namespace MyFrameworkProject.Engine.Core
         public IReadOnlyList<GameObject> GetGameObjectsByTag(string tag)
         {
             if (string.IsNullOrEmpty(tag))
-                return System.Array.Empty<GameObject>();
+                return [];
 
             if (_gameObjectsByTag.TryGetValue(tag, out var objects))
                 return objects;
 
-            return System.Array.Empty<GameObject>();
+            return [];
         }
 
         /// <summary>
@@ -240,16 +243,22 @@ namespace MyFrameworkProject.Engine.Core
         /// <summary>
         /// Processes all pending add and remove operations for entities and game objects.
         /// Called at the end of each frame to avoid modifying collections during iteration.
+        /// Optimized to minimize allocations and improve cache locality.
         /// </summary>
         private void ProcessPendingOperations()
         {
-            // Process removals first
+            // Process removals first to free up space
             if (_gameObjectsToRemove.Count > 0)
             {
-                foreach (var gameObject in _gameObjectsToRemove)
+                // Use reverse iteration to maintain stable indices
+                for (int i = _gameObjects.Count - 1; i >= 0; i--)
                 {
-                    _gameObjects.Remove(gameObject);
-                    RemoveFromTagIndex(gameObject);
+                    if (_gameObjectsToRemove.Contains(_gameObjects[i]))
+                    {
+                        var gameObject = _gameObjects[i];
+                        RemoveFromTagIndex(gameObject);
+                        _gameObjects.RemoveAt(i);
+                    }
                 }
                 
                 _gameObjectsToRemove.Clear();
@@ -258,9 +267,11 @@ namespace MyFrameworkProject.Engine.Core
             // Process additions
             if (_gameObjectsToAdd.Count > 0)
             {
+                // Batch add for better performance
+                _gameObjects.AddRange(_gameObjectsToAdd);
+                
                 foreach (var gameObject in _gameObjectsToAdd)
                 {
-                    _gameObjects.Add(gameObject);
                     AddToTagIndex(gameObject);
                 }
                 
@@ -321,6 +332,7 @@ namespace MyFrameworkProject.Engine.Core
             _coroutineManager.Update(deltaTime);
 
             // Single optimized pass for game objects lifecycle
+            // Cache count to avoid re-fetching during iteration
             int gameObjectCount = _gameObjects.Count;
             for (int i = 0; i < gameObjectCount; i++)
             {
@@ -331,7 +343,6 @@ namespace MyFrameworkProject.Engine.Core
                 gameObject.BeforeUpdate(deltaTime);
                 gameObject.Update(deltaTime);
                 gameObject.AfterUpdate(deltaTime);
-
                 gameObject.UpdateAnimation(deltaTime);
             }
 
@@ -347,14 +358,15 @@ namespace MyFrameworkProject.Engine.Core
         /// Renders all entities in the game loop.
         /// Called once per frame after Update by the application.
         /// Separates rendering into two passes: world-space entities and UI-space elements.
-        /// Optimized using for loops instead of foreach to reduce allocations.
         /// </summary>
-        /// <param name="renderer">The renderer used to draw entities and UI elements.</param>
-        public void Draw(Renderer renderer)
+        public void Draw()
         {
+            var renderer = Application.Instance.Renderer;
+            
+            // World-space rendering pass
             renderer.BeginWorld();
 
-            // Draw tilemaps
+            // Draw tilemaps first (background)
             int tilemapCount = _tilemaps.Count;
             for (int i = 0; i < tilemapCount; i++)
             {
@@ -377,8 +389,9 @@ namespace MyFrameworkProject.Engine.Core
 
             renderer.EndWorld();
 
+            // UI-space rendering pass
             renderer.BeginUI();
-
+            // UI rendering happens here
             renderer.EndUI();
         }
 

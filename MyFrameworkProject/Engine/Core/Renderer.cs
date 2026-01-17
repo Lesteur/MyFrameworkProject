@@ -193,7 +193,7 @@ namespace MyFrameworkProject.Engine.Core
         private void InitializeDebugTexture()
         {
             _pixelTexture = new Texture2D(_graphicsDevice, 1, 1);
-            _pixelTexture.SetData(new[] { Color.White });
+            _pixelTexture.SetData([Color.White]);
         }
 
         #endregion

@@ -37,9 +37,19 @@ namespace MyFrameworkProject.Engine.Core
         private GameLoop _gameLoop;
 
         /// <summary>
-        /// The currently active game room (scene).
+        /// The scene manager that handles room transitions and lifecycle.
         /// </summary>
-        private GameRoom _currentRoom;
+        private SceneManager _sceneManager;
+
+        /// <summary>
+        /// The input manager that handles all input devices (keyboard, gamepad, mouse).
+        /// </summary>
+        private InputManager _inputManager;
+
+        /// <summary>
+        /// The audio manager that handles sound playback and music.
+        /// </summary>
+        private AudioManager _audioManager;
 
         #endregion
 
@@ -61,15 +71,20 @@ namespace MyFrameworkProject.Engine.Core
         public GameLoop GameLoop => _gameLoop;
 
         /// <summary>
+        /// Gets the scene manager that handles room transitions.
+        /// </summary>
+        public SceneManager SceneManager => _sceneManager;
+
+        /// <summary>
         /// Gets the input manager that handles all input devices (keyboard, gamepad, mouse).
         /// Provides unified access to all input systems.
         /// </summary>
-        public InputManager Input { get; private set; }
+        public InputManager Input => _inputManager;
 
         /// <summary>
         /// Gets the audio manager that handles sound playback and music.
         /// </summary>
-        public AudioManager Audio { get; private set; }
+        public AudioManager Audio => _audioManager;
 
         /// <summary>
         /// Gets the renderer responsible for all 2D sprite rendering operations.
@@ -79,12 +94,12 @@ namespace MyFrameworkProject.Engine.Core
 
         #endregion
 
-        #region Properties - Room Management
+        #region Properties - Room Management (Backward Compatibility)
 
         /// <summary>
         /// Gets the currently active game room.
         /// </summary>
-        public GameRoom CurrentRoom => _currentRoom;
+        public GameRoom CurrentRoom => _sceneManager?.CurrentRoom;
 
         #endregion
 
@@ -136,12 +151,15 @@ namespace MyFrameworkProject.Engine.Core
         {
             Logger.Info("Initializing application...");
 
-            Input = new InputManager();
-            Audio = new AudioManager();
+            _inputManager = new InputManager();
+            _audioManager = new AudioManager();
             _renderer = new Renderer(GraphicsDevice);
             _gameLoop = new GameLoop();
 
             Time.Initialize();
+
+            // Initialize scene manager with coroutine support
+            _sceneManager = new SceneManager(_gameLoop, Content, _gameLoop.Coroutines);
 
             Logger.Info("Application initialized successfully");
 
@@ -173,7 +191,7 @@ namespace MyFrameworkProject.Engine.Core
             Audio.Update();
             Time.Update(gameTime);
 
-            if (_currentRoom != null && _currentRoom.IsLoaded)
+            if (CurrentRoom != null && CurrentRoom.IsLoaded)
             {
                 _gameLoop.Update();
             }
@@ -190,25 +208,33 @@ namespace MyFrameworkProject.Engine.Core
         protected override void Draw(GameTime gameTime)
         {
             // Update camera to follow target if set
-            if (_currentRoom?.CameraTarget != null)
+            if (CurrentRoom?.CameraTarget != null)
             {
-                float targetX = _currentRoom.CameraTarget.Position.X;
-                float targetY = _currentRoom.CameraTarget.Position.Y;
+                var target = CurrentRoom.CameraTarget;
+                var camera = _renderer.WorldCamera;
 
-                float halfViewportWidth = _renderer.WorldCamera.ViewportWidth / 2f;
-                float halfViewportHeight = _renderer.WorldCamera.ViewportHeight / 2f;
+                float halfViewportWidth = camera.ViewportWidth / 2f;
+                float halfViewportHeight = camera.ViewportHeight / 2f;
 
-                float clampedX = Math.Clamp(targetX, halfViewportWidth, _currentRoom.Width - halfViewportWidth);
-                float clampedY = Math.Clamp(targetY, halfViewportHeight, _currentRoom.Height - halfViewportHeight);
+                float clampedX = Math.Clamp(
+                    target.Position.X,
+                    halfViewportWidth,
+                    CurrentRoom.Width - halfViewportWidth
+                );
+                float clampedY = Math.Clamp(
+                    target.Position.Y,
+                    halfViewportHeight,
+                    CurrentRoom.Height - halfViewportHeight
+                );
 
-                _renderer.WorldCamera.SetPosition(clampedX, clampedY);
+                camera.SetPosition(clampedX, clampedY);
             }
 
             _renderer.BeginFrame();
 
-            if (_currentRoom != null && _currentRoom.IsLoaded)
+            if (CurrentRoom != null && CurrentRoom.IsLoaded)
             {
-                _gameLoop.Draw(_renderer);
+                _gameLoop.Draw();
             }
 
             base.Draw(gameTime);
@@ -224,7 +250,7 @@ namespace MyFrameworkProject.Engine.Core
             if (disposing)
             {
                 Logger.Info("Disposing application...");
-                UnloadCurrentRoom();
+                _sceneManager?.UnloadCurrentRoom();
                 _renderer?.Dispose();
                 Audio?.Dispose();
             }
@@ -242,24 +268,17 @@ namespace MyFrameworkProject.Engine.Core
         /// <param name="room">The room to load and activate.</param>
         public void LoadRoom(GameRoom room)
         {
-            if (room == null)
-            {
-                Logger.Error("Cannot load null room");
-                return;
-            }
+            _sceneManager?.LoadRoom(room);
+        }
 
-            // Unload current room if exists
-            if (_currentRoom != null)
-            {
-                Logger.Info($"Unloading current room: {_currentRoom.GetType().Name}");
-                _currentRoom.Cleanup();
-            }
-
-            // Load new room
-            _currentRoom = room;
-            _currentRoom.Initialize(_gameLoop, Content);
-
-            Logger.Info($"Room '{room.GetType().Name}' is now active");
+        /// <summary>
+        /// Loads a new room asynchronously with optional transition effects.
+        /// </summary>
+        /// <param name="room">The room to load and activate.</param>
+        /// <param name="transitionEffect">Optional transition effect coroutine.</param>
+        public void LoadRoomAsync(GameRoom room, Func<System.Collections.IEnumerator> transitionEffect = null)
+        {
+            _sceneManager?.LoadRoomAsync(room, transitionEffect);
         }
 
         /// <summary>
@@ -268,12 +287,7 @@ namespace MyFrameworkProject.Engine.Core
         /// </summary>
         public void UnloadCurrentRoom()
         {
-            if (_currentRoom != null)
-            {
-                Logger.Info($"Unloading current room: {_currentRoom.GetType().Name}");
-                _currentRoom.Cleanup();
-                _currentRoom = null;
-            }
+            _sceneManager?.UnloadCurrentRoom();
         }
 
         #endregion
