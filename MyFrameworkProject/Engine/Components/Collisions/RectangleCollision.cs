@@ -77,6 +77,8 @@ namespace MyFrameworkProject.Engine.Components.Collisions
         /// <param name="height">The height of the rectangle.</param>
         public RectangleCollision(float offsetX, float offsetY, float width, float height) : base(offsetX, offsetY)
         {
+            _offsetX = offsetX;
+            _offsetY = offsetY;
             _width = Math.Max(0f, width);
             _height = Math.Max(0f, height);
         }

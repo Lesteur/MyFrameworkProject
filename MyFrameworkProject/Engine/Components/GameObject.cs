@@ -1,9 +1,10 @@
 ﻿using System.Collections;
-using System.Threading;
+using System.Collections.Generic;
 
 using MyFrameworkProject.Engine.Audio;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Input;
+using MyFrameworkProject.Engine.Core;
 using MyFrameworkProject.Engine.Core.Coroutines;
 using MyFrameworkProject.Engine.Components.Collisions;
 
@@ -16,25 +17,31 @@ namespace MyFrameworkProject.Engine.Components
     /// </summary>
     public class GameObject : Entity
     {
-        #region Static Fields - Systems
+        #region Static Properties - Systems
 
         /// <summary>
-        /// Static reference to the input manager for convenient access in all game objects.
-        /// Set by the GameLoop during initialization.
+        /// Gets the input manager for convenient access in all game objects.
         /// </summary>
-        protected static InputManager Input { get; private set; }
+        protected static InputManager Input => Application.Instance?.Input;
 
         /// <summary>
-        /// Static reference to the audio manager for convenient access in all game objects.
-        /// Set by the GameLoop during initialization.
+        /// Gets the audio manager for convenient access in all game objects.
         /// </summary>
-        protected static AudioManager Audio { get; private set; }
+        protected static AudioManager Audio => Application.Instance?.Audio;
 
         /// <summary>
-        /// Static reference to the coroutine manager for convenient access in all game objects.
-        /// Set by the GameLoop during initialization.
+        /// Gets the coroutine manager for convenient access in all game objects.
         /// </summary>
-        protected static CoroutineManager Coroutines { get; private set; }
+        protected static CoroutineManager Coroutines => Application.Instance?.GameLoop?.Coroutines;
+
+        #endregion
+
+        #region Fields - Identity
+
+        /// <summary>
+        /// Tag for the GameObject used for grouping and identification.
+        /// </summary>
+        private string _tag;
 
         #endregion
 
@@ -44,6 +51,11 @@ namespace MyFrameworkProject.Engine.Components
         /// Indicates whether this game object is active and should be updated.
         /// </summary>
         private bool _active = true;
+
+        /// <summary>
+        /// Indicates whether to draw debug information for this game object.
+        /// </summary>
+        private bool _drawDebug = true;
 
         #endregion
 
@@ -57,12 +69,26 @@ namespace MyFrameworkProject.Engine.Components
 
         #endregion
 
+        #region Properties - Identity
+
+        /// <summary>
+        /// Gets the tag of this game object.
+        /// </summary>
+        public string Tag => _tag;
+
+        #endregion
+
         #region Properties - State
 
         /// <summary>
         /// Gets whether this game object is active and should be updated.
         /// </summary>
         public bool Active => _active;
+
+        /// <summary>
+        /// Gets whether to draw debug information for this game object.
+        /// </summary>
+        public bool DrawDebug => _drawDebug;
 
         #endregion
 
@@ -86,8 +112,9 @@ namespace MyFrameworkProject.Engine.Components
         /// Initializes a new instance of the <see cref="GameObject"/> class.
         /// Sets the game object as active by default.
         /// </summary>
-        public GameObject() : base()
+        public GameObject(string tag = "") : base()
         {
+            _tag = tag ?? string.Empty;
         }
 
         /// <summary>
@@ -95,42 +122,10 @@ namespace MyFrameworkProject.Engine.Components
         /// Sets the game object as active by default.
         /// </summary>
         /// <param name="sprite">The sprite to assign to this game object.</param>
-        public GameObject(Sprite sprite) : base(sprite)
+        /// <param name="tag">Optional tag for grouping and identification.</param>
+        public GameObject(Sprite sprite, string tag = "") : base(sprite)
         {
-        }
-
-        #endregion
-
-        #region Internal Methods - Initialization
-
-        /// <summary>
-        /// Initializes the static input reference for all game objects.
-        /// Called internally by the GameLoop during initialization.
-        /// </summary>
-        /// <param name="inputManager">The input manager instance to use for all game objects.</param>
-        internal static void InitializeInput(InputManager inputManager)
-        {
-            Input = inputManager;
-        }
-
-        /// <summary>
-        /// Initializes the static audio reference for all game objects.
-        /// Called internally by the GameLoop during initialization.
-        /// </summary>
-        /// <param name="audioManager">The audio manager instance to use for all game objects.</param>
-        internal static void InitializeAudio(AudioManager audioManager)
-        {
-            Audio = audioManager;
-        }
-
-        /// <summary>
-        /// Initializes the static coroutine reference for all game objects.
-        /// Called internally by the GameLoop during initialization.
-        /// </summary>
-        /// <param name="coroutineManager">The coroutine manager instance to use for all game objects.</param>
-        internal static void InitializeCoroutines(CoroutineManager coroutineManager)
-        {
-            Coroutines = coroutineManager;
+            _tag = tag ?? string.Empty;
         }
 
         #endregion
@@ -145,6 +140,29 @@ namespace MyFrameworkProject.Engine.Components
         public void SetActive(bool active)
         {
             _active = active;
+        }
+
+        /// <summary>
+        /// Sets whether to draw debug information for this game object.
+        /// </summary>
+        /// <param name="drawDebug">True to enable debug drawing, false to disable it.</param>
+        public void SetDrawDebug(bool drawDebug)
+        {
+            _drawDebug = drawDebug;
+        }
+
+        /// <summary>
+        /// Sets the tag of this game object.
+        /// Updates the GameLoop's tag index if the game object is already in the loop.
+        /// </summary>
+        /// <param name="tag">The new tag to assign.</param>
+        public void SetTag(string tag)
+        {
+            string oldTag = _tag;
+            _tag = tag ?? string.Empty;
+
+            // Update the GameLoop's tag index if this object is already added
+            Application.Instance?.GameLoop?.UpdateGameObjectTag(this, oldTag, _tag);
         }
 
         #endregion
@@ -165,13 +183,92 @@ namespace MyFrameworkProject.Engine.Components
         /// Returns false if either object doesn't have a collision mask.
         /// </summary>
         /// <param name="other">The other game object to check collision against.</param>
+        /// <param name="x">The optional additional X offset to apply to this object's position during the check.</param>
+        /// <param name="y">The optional additional Y offset to apply to this object's position during the check.</param>
         /// <returns>True if the collision masks intersect; otherwise, false.</returns>
-        public bool CollidesWith(GameObject other)
+        public bool CollidesWith(GameObject other, int x = 0, int y = 0)
         {
             if (_collisionMask == null || other == null || other._collisionMask == null)
                 return false;
 
-            return _collisionMask.Intersects(other._collisionMask, _x, _y, other._x, other._y);
+            return _collisionMask.Intersects(other._collisionMask, _x + x, _y + y, other._x, other._y);
+        }
+
+        /// <summary>
+        /// Checks if this game object collides with any game object having the specified tag.
+        /// Uses optimized tag indexing for better performance.
+        /// </summary>
+        /// <param name="tag">The tag to check collision against.</param>
+        /// <param name="x">The optional additional X offset to apply to this object's position during the check.</param>
+        /// <param name="y">The optional additional Y offset to apply to this object's position during the check.</param>
+        /// <returns>True if collision is detected with at least one object of the specified tag; otherwise, false.</returns>
+        public bool CollidesWithTag(string tag, int x = 0, int y = 0)
+        {
+            if (_collisionMask == null || string.IsNullOrEmpty(tag))
+                return false;
+
+            var gameLoop = Application.Instance?.GameLoop;
+            if (gameLoop == null)
+                return false;
+
+            var taggedObjects = gameLoop.GetGameObjectsByTag(tag);
+            foreach (var obj in taggedObjects)
+            {
+                if (obj != this && obj.HasCollisionMask && CollidesWith(obj, x, y))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the first game object with the specified tag that this object collides with.
+        /// </summary>
+        /// <param name="tag">The tag to check collision against.</param>
+        /// <returns>The first colliding GameObject, or null if no collision is detected.</returns>
+        public GameObject GetCollidingObjectWithTag(string tag)
+        {
+            if (_collisionMask == null || string.IsNullOrEmpty(tag))
+                return null;
+
+            var gameLoop = Application.Instance?.GameLoop;
+            if (gameLoop == null)
+                return null;
+
+            var taggedObjects = gameLoop.GetGameObjectsByTag(tag);
+            foreach (var obj in taggedObjects)
+            {
+                if (obj != this && obj.HasCollisionMask && CollidesWith(obj))
+                    return obj;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets all game objects with the specified tag that this object collides with.
+        /// </summary>
+        /// <param name="tag">The tag to check collision against.</param>
+        /// <returns>A list of all colliding GameObjects with the specified tag.</returns>
+        public List<GameObject> GetAllCollidingObjectsWithTag(string tag)
+        {
+            var collidingObjects = new List<GameObject>();
+
+            if (_collisionMask == null || string.IsNullOrEmpty(tag))
+                return collidingObjects;
+
+            var gameLoop = Application.Instance?.GameLoop;
+            if (gameLoop == null)
+                return collidingObjects;
+
+            var taggedObjects = gameLoop.GetGameObjectsByTag(tag);
+            foreach (var obj in taggedObjects)
+            {
+                if (obj != this && obj.HasCollisionMask && CollidesWith(obj))
+                    collidingObjects.Add(obj);
+            }
+
+            return collidingObjects;
         }
 
         /// <summary>

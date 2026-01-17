@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Graphics.Shaders;
+using MyFrameworkProject.Engine.Components.Collisions;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -80,6 +81,15 @@ namespace MyFrameworkProject.Engine.Core
 
         #endregion
 
+        #region Fields - Debug Rendering
+
+        /// <summary>
+        /// A 1x1 white texture used for drawing debug shapes.
+        /// </summary>
+        private Texture2D _pixelTexture;
+
+        #endregion
+
         #region Fields - State
 
         /// <summary>
@@ -131,6 +141,7 @@ namespace MyFrameworkProject.Engine.Core
 
             InitializeCameras();
             CalculateScalingMatrix();
+            InitializeDebugTexture();
 
             Logger.Info("Renderer initialized");
         }
@@ -174,6 +185,15 @@ namespace MyFrameworkProject.Engine.Core
             float scale = MathHelper.Min(scaleX, scaleY);
 
             _scalingMatrix = Matrix.CreateScale(scale, scale, 1f);
+        }
+
+        /// <summary>
+        /// Initializes a 1x1 white pixel texture for drawing debug shapes.
+        /// </summary>
+        private void InitializeDebugTexture()
+        {
+            _pixelTexture = new Texture2D(_graphicsDevice, 1, 1);
+            _pixelTexture.SetData(new[] { Color.White });
         }
 
         #endregion
@@ -376,6 +396,35 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         /// <summary>
+        /// Draws a collision mask for debugging purposes.
+        /// Uses different colors for different collision types.
+        /// </summary>
+        /// <param name="collisionMask">The collision mask to draw.</param>
+        /// <param name="x">The world X-coordinate of the mask.</param>
+        /// <param name="y">The world Y-coordinate of the mask.</param>
+        public void DrawCollisionMask(CollisionMask collisionMask, float x, float y)
+        {
+            if (collisionMask == null)
+                return;
+
+            switch (collisionMask)
+            {
+                case PointCollision point:
+                    DrawPointCollision(point, x, y);
+                    break;
+                case LineCollision line:
+                    DrawLineCollision(line, x, y);
+                    break;
+                case CircleCollision circle:
+                    DrawCircleCollision(circle, x, y);
+                    break;
+                case RectangleCollision rectangle:
+                    DrawRectangleCollision(rectangle, x, y);
+                    break;
+            }
+        }
+
+        /// <summary>
         /// Ends the world rendering context and submits all batched world-space sprites for rendering.
         /// Must be called after <see cref="BeginWorld"/> when all world entities have been drawn.
         /// </summary>
@@ -477,6 +526,122 @@ namespace MyFrameworkProject.Engine.Core
 
         #endregion
 
+        #region Private Methods - Debug Collision Rendering
+
+        /// <summary>
+        /// Draws a point collision mask as a small cross.
+        /// </summary>
+        /// <param name="point">The point collision mask.</param>
+        /// <param name="x">The world X-coordinate.</param>
+        /// <param name="y">The world Y-coordinate.</param>
+        private void DrawPointCollision(PointCollision point, float x, float y)
+        {
+            float worldX = x + point.OffsetX;
+            float worldY = y + point.OffsetY;
+            Color color = Color.Red;
+            int size = 3;
+
+            // Draw a cross
+            DrawDebugLine(worldX - size, worldY, worldX + size, worldY, color);
+            DrawDebugLine(worldX, worldY - size, worldX, worldY + size, color);
+        }
+
+        /// <summary>
+        /// Draws a line collision mask.
+        /// </summary>
+        /// <param name="line">The line collision mask.</param>
+        /// <param name="x">The world X-coordinate.</param>
+        /// <param name="y">The world Y-coordinate.</param>
+        private void DrawLineCollision(LineCollision line, float x, float y)
+        {
+            float x1 = x + line.OffsetX;
+            float y1 = y + line.OffsetY;
+            float x2 = x + line.X2;
+            float y2 = y + line.Y2;
+
+            DrawDebugLine(x1, y1, x2, y2, Color.Yellow);
+        }
+
+        /// <summary>
+        /// Draws a circle collision mask as an outlined circle.
+        /// </summary>
+        /// <param name="circle">The circle collision mask.</param>
+        /// <param name="x">The world X-coordinate.</param>
+        /// <param name="y">The world Y-coordinate.</param>
+        private void DrawCircleCollision(CircleCollision circle, float x, float y)
+        {
+            float centerX = x + circle.OffsetX;
+            float centerY = y + circle.OffsetY;
+            float radius = circle.Radius;
+            Color color = Color.Lime;
+            int segments = 32;
+
+            // Draw circle using line segments
+            for (int i = 0; i < segments; i++)
+            {
+                float angle1 = (float)(2 * Math.PI * i / segments);
+                float angle2 = (float)(2 * Math.PI * (i + 1) / segments);
+
+                float x1 = centerX + radius * MathF.Cos(angle1);
+                float y1 = centerY + radius * MathF.Sin(angle1);
+                float x2 = centerX + radius * MathF.Cos(angle2);
+                float y2 = centerY + radius * MathF.Sin(angle2);
+
+                DrawDebugLine(x1, y1, x2, y2, color);
+            }
+        }
+
+        /// <summary>
+        /// Draws a rectangle collision mask as an outlined rectangle.
+        /// </summary>
+        /// <param name="rectangle">The rectangle collision mask.</param>
+        /// <param name="x">The world X-coordinate.</param>
+        /// <param name="y">The world Y-coordinate.</param>
+        private void DrawRectangleCollision(RectangleCollision rectangle, float x, float y)
+        {
+            float left = x + rectangle.OffsetX;
+            float top = y + rectangle.OffsetY;
+            float right = left + rectangle.Width;
+            float bottom = top + rectangle.Height;
+            Color color = Color.Cyan;
+
+            // Draw four edges
+            DrawDebugLine(left, top, right, top, color);        // Top
+            DrawDebugLine(right, top, right, bottom, color);    // Right
+            DrawDebugLine(right, bottom, left, bottom, color);  // Bottom
+            DrawDebugLine(left, bottom, left, top, color);      // Left
+        }
+
+        /// <summary>
+        /// Draws a debug line between two points.
+        /// </summary>
+        /// <param name="x1">Starting X-coordinate.</param>
+        /// <param name="y1">Starting Y-coordinate.</param>
+        /// <param name="x2">Ending X-coordinate.</param>
+        /// <param name="y2">Ending Y-coordinate.</param>
+        /// <param name="color">Line color.</param>
+        private void DrawDebugLine(float x1, float y1, float x2, float y2, Color color)
+        {
+            float dx = x2 - x1;
+            float dy = y2 - y1;
+            float length = MathF.Sqrt(dx * dx + dy * dy);
+            float angle = MathF.Atan2(dy, dx);
+
+            _spriteBatch.Draw(
+                _pixelTexture,
+                new Vector2(x1, y1),
+                null,
+                color,
+                angle,
+                Vector2.Zero,
+                new Vector2(length, 1f),
+                SpriteEffects.None,
+                0f
+            );
+        }
+
+        #endregion
+
         #region IDisposable Implementation
 
         /// <summary>
@@ -490,6 +655,7 @@ namespace MyFrameworkProject.Engine.Core
 
             _spriteBatch?.Dispose();
             _shaderManager?.Dispose();
+            _pixelTexture?.Dispose();
 
             ClearResources();
 

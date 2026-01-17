@@ -28,7 +28,7 @@ namespace MyFrameworkProject.Assets
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectTest"/> class.
         /// </summary>
-        public ObjectTest() : base()
+        public ObjectTest(string tag = "") : base(tag)
         {
         }
 
@@ -36,7 +36,7 @@ namespace MyFrameworkProject.Assets
         /// Initializes a new instance of the <see cref="ObjectTest"/> class with the specified sprite.
         /// </summary>
         /// <param name="sprite">The sprite to assign to this test object.</param>
-        public ObjectTest(Sprite sprite) : base(sprite)
+        public ObjectTest(Sprite sprite, string tag = "") : base(sprite, tag)
         {
         }
 
@@ -74,28 +74,40 @@ namespace MyFrameworkProject.Assets
         /// <param name="deltaTime">The time elapsed since the last update, in seconds.</param>
         public override void Update(float deltaTime)
         {
+            var x = 0;
+            var y = 0;
+
             // Handle horizontal movement
             if (Input.IsDown(InputAction.Left))
             {
-                _x -= (int)(_moveSpeed * deltaTime);
-                SetScaleX(-1); // Flip sprite to face left
+                x -= (int)(_moveSpeed * deltaTime);
             }
 
             if (Input.IsDown(InputAction.Right))
             {
-                _x += (int)(_moveSpeed * deltaTime);
-                SetScaleX(1); // Face right
+                x += (int)(_moveSpeed * deltaTime);
             }
 
             // Handle vertical movement
             if (Input.IsDown(InputAction.Up))
             {
-                _y -= (int)(_moveSpeed * deltaTime);
+                y -= (int)(_moveSpeed * deltaTime);
             }
 
             if (Input.IsDown(InputAction.Down))
             {
-                _y += (int)(_moveSpeed * deltaTime);
+                y += (int)(_moveSpeed * deltaTime);
+            }
+
+            // Apply movement
+            if (!CollidesWithTag("Wall", x, 0))
+            {
+                _x += x;
+            }
+
+            if (!CollidesWithTag("Wall", 0, y))
+            {
+                _y += y;
             }
 
             // Example: Respond to action presses
@@ -125,6 +137,11 @@ namespace MyFrameworkProject.Assets
         {
             // Example: Apply physics constraints, clamp positions, etc.
             // ClampPosition();
+
+            if (CollidesWithTag("Wall"))
+            {
+                Logger.Info("Collision detected with a solid object.");
+            }
         }
 
         #endregion

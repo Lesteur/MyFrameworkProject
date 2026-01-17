@@ -1,9 +1,10 @@
-﻿using Microsoft.Xna.Framework;
-using MyFrameworkProject.Assets;
+﻿using System;
+using Microsoft.Xna.Framework;
+
 using MyFrameworkProject.Engine.Audio;
-using MyFrameworkProject.Engine.Components;
 using MyFrameworkProject.Engine.Input;
-using System;
+using MyFrameworkProject.Engine.Components;
+using MyFrameworkProject.Assets;
 
 namespace MyFrameworkProject.Engine.Core
 {
@@ -138,9 +139,9 @@ namespace MyFrameworkProject.Engine.Core
             Input = new InputManager();
             Audio = new AudioManager();
             _renderer = new Renderer(GraphicsDevice);
+            _gameLoop = new GameLoop();
 
             Time.Initialize();
-            _gameLoop = new GameLoop(Input, Audio);
 
             Logger.Info("Application initialized successfully");
 

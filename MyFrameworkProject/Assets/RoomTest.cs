@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 
 using MyFrameworkProject.Engine.Components;
+using MyFrameworkProject.Engine.Components.Collisions;
 using MyFrameworkProject.Engine.Core;
 using MyFrameworkProject.Engine.Graphics;
 using MyFrameworkProject.Engine.Graphics.Shaders;
@@ -47,6 +48,8 @@ namespace MyFrameworkProject.Assets
             {
                 case "Player":
                     return CreatePlayer(tiledObject);
+                case "Collision":
+                    return CreateCollision(tiledObject);
 
                 // Add more cases for different object types as needed
                 // case "Enemy":
@@ -72,18 +75,37 @@ namespace MyFrameworkProject.Assets
             var texture = new Engine.Graphics.Texture(nativeTexture);
             var sprite = new Sprite(texture, 0, 0, 14);
 
-            // Create player game object
-            var player = new ObjectTest(sprite);
+            // Create player game object with tag "Player"
+            var player = new ObjectTest(sprite, "Player");
             player.SetPosition((int)tiledObject.X, (int)tiledObject.Y);
             player.SetScale(1.0f, 1.0f);
             player.SetMoveSpeed(150f);
             player.EnableAnimation(0.05f, true);
+            player.SetDrawDebug(true); // Enable debug drawing
+
+            //CollisionMask mask = new CircleCollision(player.Sprite.FrameWidth / 2, player.Sprite.FrameHeight / 2, player.Sprite.FrameWidth / 2);
+            CollisionMask mask = new RectangleCollision(player.Sprite.FrameWidth, player.Sprite.FrameHeight);
+            player.SetCollisionMask(mask);
 
             // Set camera to follow the player
             CameraTarget = player;
 
             Logger.Info($"Player created at ({tiledObject.X}, {tiledObject.Y})");
             return player;
+        }
+
+        private GameObject CreateCollision(TiledObject tiledObject)
+        {
+            // Create static collision object with tag "Wall"
+            var collisionObject = new GameObject("Wall");
+            collisionObject.SetPosition((int)tiledObject.X, (int)tiledObject.Y);
+            collisionObject.SetDrawDebug(true); // Enable debug drawing for walls
+            
+            CollisionMask mask = new RectangleCollision(tiledObject.Width, tiledObject.Height);
+            collisionObject.SetCollisionMask(mask);
+
+            Logger.Info($"Collision object created at ({tiledObject.X}, {tiledObject.Y}) with size ({tiledObject.Width}, {tiledObject.Height})");
+            return collisionObject;
         }
 
         protected override void Unload()
