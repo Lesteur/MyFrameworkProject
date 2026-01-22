@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MyFrameworkProject.Engine.Components;
+using MyFrameworkProject.Engine.Core;
 
 namespace MyFrameworkProject.Engine.Graphics
 {

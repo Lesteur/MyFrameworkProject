@@ -353,6 +353,8 @@ namespace MyFrameworkProject.Engine.Components
                     tiledTileset.Spacing
                 );
 
+                tileset.SetAnimations(tiledTileset.Tiles);
+
                 return tileset;
             }
             catch (Exception ex)

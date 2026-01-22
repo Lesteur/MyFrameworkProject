@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MyFrameworkProject.Engine.Core;
 using MyFrameworkProject.Engine.Serialization;
 
 namespace MyFrameworkProject.Engine.Graphics

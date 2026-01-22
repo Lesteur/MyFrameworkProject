@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework.Content;
 
+using MyFrameworkProject.Engine.Core;
+
 namespace MyFrameworkProject.Engine.Serialization
 {
     /// <summary>
@@ -34,10 +36,14 @@ namespace MyFrameworkProject.Engine.Serialization
             // Read animated tile data
             bool hasTiles = input.ReadBoolean();
 
+            Logger.Info($"Reading tiles for tileset '{tileset.Name}': HasTiles = {hasTiles}");
+
             if (hasTiles)
             {
                 int tileCount = input.ReadInt32();
                 tileset.Tiles = new TiledTileData[tileCount];
+
+                Logger.Info($"Reading {tileCount} tiles from tileset '{tileset.Name}'.");
 
                 for (int i = 0; i < tileCount; i++)
                 {

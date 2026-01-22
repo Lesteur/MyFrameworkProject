@@ -31,9 +31,6 @@ namespace MyFrameworkProject.Assets
             // Load the Tiled map from the content pipeline with a custom object factory
             LoadTiledMap("Levels/Level", CreateGameObjectFromTiled);
 
-            // Example: Apply as global shader to all entities
-            Application.Instance.Renderer.ShaderManager.AddGlobalWorldShader("wave");
-
             Logger.Info("RoomTest: All resources loaded successfully");
         }
 
