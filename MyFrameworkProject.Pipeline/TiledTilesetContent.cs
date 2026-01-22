@@ -3,6 +3,43 @@
 namespace MyFrameworkProject.Pipeline
 {
     /// <summary>
+    /// Represents a single animation frame for a tile.
+    /// </summary>
+    public class TiledAnimationFrame
+    {
+        /// <summary>
+        /// Gets or sets the duration of this frame in milliseconds.
+        /// </summary>
+        [JsonPropertyName("duration")]
+        public int Duration { get; set; }
+
+        /// <summary>
+        /// Gets or sets the tile ID to display for this frame.
+        /// </summary>
+        [JsonPropertyName("tileid")]
+        public int TileId { get; set; }
+    }
+
+    /// <summary>
+    /// Represents tile-specific data including animation information.
+    /// </summary>
+    public class TiledTileData
+    {
+        /// <summary>
+        /// Gets or sets the local tile ID.
+        /// </summary>
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the animation frames for this tile.
+        /// Null or empty if the tile is not animated.
+        /// </summary>
+        [JsonPropertyName("animation")]
+        public TiledAnimationFrame[] Animation { get; set; }
+    }
+
+    /// <summary>
     /// Represents Tiled tileset data for the Content Pipeline.
     /// This class is serializable and will be converted to XNB format.
     /// Supports both TSX and JSON tileset formats.
@@ -68,5 +105,12 @@ namespace MyFrameworkProject.Pipeline
         /// </summary>
         [JsonPropertyName("imageheight")]
         public int ImageHeight { get; set; }
+
+        /// <summary>
+        /// Gets or sets the array of tile-specific data including animations.
+        /// Null or empty if no tiles have special properties.
+        /// </summary>
+        [JsonPropertyName("tiles")]
+        public TiledTileData[] Tiles { get; set; }
     }
 }

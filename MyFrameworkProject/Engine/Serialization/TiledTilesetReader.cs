@@ -31,6 +31,42 @@ namespace MyFrameworkProject.Engine.Serialization
                 ImageHeight = input.ReadInt32()
             };
 
+            // Read animated tile data
+            bool hasTiles = input.ReadBoolean();
+
+            if (hasTiles)
+            {
+                int tileCount = input.ReadInt32();
+                tileset.Tiles = new TiledTileData[tileCount];
+
+                for (int i = 0; i < tileCount; i++)
+                {
+                    var tile = new TiledTileData
+                    {
+                        Id = input.ReadInt32()
+                    };
+
+                    bool hasAnimation = input.ReadBoolean();
+
+                    if (hasAnimation)
+                    {
+                        int frameCount = input.ReadInt32();
+                        tile.Animation = new TiledAnimationFrame[frameCount];
+
+                        for (int j = 0; j < frameCount; j++)
+                        {
+                            tile.Animation[j] = new TiledAnimationFrame
+                            {
+                                Duration = input.ReadInt32(),
+                                TileId = input.ReadInt32()
+                            };
+                        }
+                    }
+
+                    tileset.Tiles[i] = tile;
+                }
+            }
+
             return tileset;
         }
     }

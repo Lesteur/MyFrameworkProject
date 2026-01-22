@@ -487,7 +487,7 @@ namespace MyFrameworkProject.Engine.Components
         /// This method should be called once per frame by the game loop.
         /// </summary>
         /// <param name="deltaTime">The time elapsed since the last update, in seconds.</param>
-        public void UpdateAnimation(float deltaTime)
+        public virtual void UpdateAnimation(float deltaTime)
         {
             if (!_animationEnabled || !_isPlaying || _sprite == null)
                 return;

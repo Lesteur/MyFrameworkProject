@@ -30,7 +30,7 @@ namespace MyFrameworkProject.Engine.Core
 
         /// <summary>
         /// The collection of all tilemaps currently managed by the game loop.
-        /// Tilemaps are rendered in the world-space context.
+        /// Tilemaps are updated and rendered in the world-space context.
         /// </summary>
         private readonly List<Tilemap> _tilemaps = [];
 
@@ -61,6 +61,11 @@ namespace MyFrameworkProject.Engine.Core
         /// Gets a read-only view of all GameObjects in the game loop.
         /// </summary>
         public IReadOnlyList<GameObject> GameObjects => _gameObjects;
+
+        /// <summary>
+        /// Gets a read-only view of all Tilemaps in the game loop.
+        /// </summary>
+        public IReadOnlyList<Tilemap> Tilemaps => _tilemaps;
 
         #endregion
 
@@ -137,7 +142,7 @@ namespace MyFrameworkProject.Engine.Core
         }
 
         /// <summary>
-        /// Adds a tilemap to the game loop for rendering.
+        /// Adds a tilemap to the game loop for updating and rendering.
         /// </summary>
         /// <param name="tilemap">The tilemap to add to the game loop.</param>
         public void AddTilemap(Tilemap tilemap)
@@ -149,6 +154,21 @@ namespace MyFrameworkProject.Engine.Core
             }
 
             _tilemaps.Add(tilemap);
+        }
+
+        /// <summary>
+        /// Removes a tilemap from the game loop.
+        /// </summary>
+        /// <param name="tilemap">The tilemap to remove from the game loop.</param>
+        public void RemoveTilemap(Tilemap tilemap)
+        {
+            if (tilemap == null)
+            {
+                Logger.Warning("Cannot remove null Tilemap from GameLoop");
+                return;
+            }
+
+            _tilemaps.Remove(tilemap);
         }
 
         #endregion
@@ -330,6 +350,13 @@ namespace MyFrameworkProject.Engine.Core
 
             // Update coroutines
             _coroutineManager.Update(deltaTime);
+
+            // Update tilemaps (animations)
+            int tilemapCount = _tilemaps.Count;
+            for (int i = 0; i < tilemapCount; i++)
+            {
+                _tilemaps[i].UpdateAnimation(deltaTime);
+            }
 
             // Single optimized pass for game objects lifecycle
             // Cache count to avoid re-fetching during iteration

@@ -1,8 +1,6 @@
 using System;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
 using MyFrameworkProject.Engine.Components;
 
 namespace MyFrameworkProject.Engine.Graphics
@@ -10,7 +8,7 @@ namespace MyFrameworkProject.Engine.Graphics
     /// <summary>
     /// Represents a tilemap instance based on a tileset, allowing for grid-based tile rendering.
     /// Extends Entity to inherit common rendering properties like position, color, visibility, and layer depth.
-    /// Provides functionality for managing tile data and efficient grid-based rendering.
+    /// Provides functionality for managing tile data, efficient grid-based rendering, and tile animations.
     /// </summary>
     public class Tilemap : Entity
     {
@@ -42,6 +40,22 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
+        #region Fields - Animation
+
+        /// <summary>
+        /// Total elapsed time in milliseconds since the tilemap was created or reset.
+        /// Used to calculate the current frame for all animated tiles.
+        /// </summary>
+        private double _totalElapsedTimeMs = 0.0;
+
+        /// <summary>
+        /// Indicates whether tile animations are enabled for this tilemap.
+        /// When disabled, animated tiles display their base frame.
+        /// </summary>
+        private bool _animationsEnabled = true;
+
+        #endregion
+
         #region Properties - Tileset
 
         /// <summary>
@@ -62,6 +76,20 @@ namespace MyFrameworkProject.Engine.Graphics
         /// Gets the height of the tilemap grid in tiles.
         /// </summary>
         public int GridHeight => _gridHeight;
+
+        #endregion
+
+        #region Properties - Animation
+
+        /// <summary>
+        /// Gets whether tile animations are currently enabled.
+        /// </summary>
+        public bool AnimationsEnabled => _animationsEnabled;
+
+        /// <summary>
+        /// Gets the total elapsed time in milliseconds for animations.
+        /// </summary>
+        public double TotalElapsedTimeMs => _totalElapsedTimeMs;
 
         #endregion
 
@@ -203,30 +231,87 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
+        #region Public Methods - Animation
+
+        /// <summary>
+        /// Updates the tilemap's animation state based on elapsed time.
+        /// Overrides Entity.UpdateAnimation to handle tile-specific animations.
+        /// This method is automatically called by the game loop.
+        /// </summary>
+        /// <param name="deltaTime">The time elapsed since the last update, in seconds.</param>
+        public sealed override void UpdateAnimation(float deltaTime)
+        {
+            // Only update if animations are enabled and the tileset has animations
+            if (_animationsEnabled && _tileset != null && _tileset.HasAnimations)
+            {
+                _totalElapsedTimeMs += deltaTime * 1000.0; // Convert seconds to milliseconds
+            }
+        }
+
+        /// <summary>
+        /// Enables tile animations for this tilemap.
+        /// </summary>
+        public void EnableAnimations()
+        {
+            _animationsEnabled = true;
+        }
+
+        /// <summary>
+        /// Disables tile animations for this tilemap.
+        /// Animated tiles will display their base frame.
+        /// </summary>
+        public void DisableAnimations()
+        {
+            _animationsEnabled = false;
+        }
+
+        /// <summary>
+        /// Resets the animation timer to zero, restarting all tile animations.
+        /// </summary>
+        public void ResetAnimations()
+        {
+            _totalElapsedTimeMs = 0.0;
+        }
+
+        #endregion
+
         #region Public Methods - Rendering
 
         /// <summary>
         /// Draws the tilemap to the screen using the provided sprite batch.
         /// Iterates through all tiles and renders only non-empty tiles.
+        /// Automatically handles animated tiles if animations are enabled.
         /// Uses the tilemap's position, color, layer depth, and visibility inherited from Entity.
         /// </summary>
         /// <param name="spriteBatch">The sprite batch to use for rendering.</param>
-        public override void Draw(SpriteBatch spriteBatch)
+        public sealed override void Draw(SpriteBatch spriteBatch)
         {
             if (_tileset == null)
                 return;
+
+            // Cache values for performance
+            bool hasAnimations = _animationsEnabled && _tileset.HasAnimations;
+            double currentTimeMs = _totalElapsedTimeMs;
+            Color color = Color;
+            float layerDepth = LayerDepth;
+            SpriteEffects spriteEffects = SpriteEffects;
 
             for (int gridY = 0; gridY < _gridHeight; gridY++)
             {
                 for (int gridX = 0; gridX < _gridWidth; gridX++)
                 {
                     int tileIndex = _tileData[gridX, gridY];
-                    
+
                     // Skip empty tiles
                     if (tileIndex < 0)
                         continue;
 
-                    Rectangle sourceRect = GetTileSourceRectangle(tileIndex);
+                    // Get the actual tile to render (animated or static)
+                    int renderTileIndex = hasAnimations 
+                        ? _tileset.GetAnimatedTileId(tileIndex, currentTimeMs)
+                        : tileIndex;
+
+                    Rectangle sourceRect = GetTileSourceRectangle(renderTileIndex);
                     Vector2 position = new(
                         _x + gridX * _tileset.TileWidth,
                         _y + gridY * _tileset.TileHeight
@@ -236,12 +321,12 @@ namespace MyFrameworkProject.Engine.Graphics
                         _tileset.Texture.NativeTexture,
                         position,
                         sourceRect,
-                        Color,
+                        color,
                         0f,
                         Vector2.Zero,
                         1f,
-                        SpriteEffects,
-                        LayerDepth
+                        spriteEffects,
+                        layerDepth
                     );
                 }
             }

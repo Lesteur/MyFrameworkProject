@@ -24,10 +24,13 @@ namespace MyFrameworkProject.Pipeline
 
             ValidateBasicProperties(input);
             ValidateImageConsistency(input, context);
+            ValidateAnimatedTiles(input, context);
 
+            int animatedTileCount = input.Tiles?.Length ?? 0;
             context.Logger.LogMessage(
                 $"Tileset processed successfully: {input.TileCount} tiles, " +
-                $"{input.Columns} columns, {CalculateRows(input)} rows"
+                $"{input.Columns} columns, {CalculateRows(input)} rows, " +
+                $"{animatedTileCount} animated tile(s)"
             );
 
             return input;
@@ -117,6 +120,61 @@ namespace MyFrameworkProject.Pipeline
                         $"Image height ({input.ImageHeight} px) is smaller than the calculated minimum " +
                         $"required height ({calculatedImageHeight} px) for {expectedRows} rows."
                     );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates animated tile data if present.
+        /// </summary>
+        /// <param name="input">The tileset data to validate.</param>
+        /// <param name="context">The processor context for logging warnings.</param>
+        private static void ValidateAnimatedTiles(TiledTilesetContent input, ContentProcessorContext context)
+        {
+            if (input.Tiles == null || input.Tiles.Length == 0)
+            {
+                return;
+            }
+
+            foreach (var tile in input.Tiles)
+            {
+                // Validate tile ID is within bounds
+                if (tile.Id < 0 || tile.Id >= input.TileCount)
+                {
+                    context.Logger.LogWarning(
+                        null,
+                        null,
+                        $"Tile ID {tile.Id} is out of bounds (0-{input.TileCount - 1})."
+                    );
+                }
+
+                // Validate animation if present
+                if (tile.Animation != null && tile.Animation.Length > 0)
+                {
+                    for (int i = 0; i < tile.Animation.Length; i++)
+                    {
+                        var frame = tile.Animation[i];
+
+                        if (frame.Duration <= 0)
+                        {
+                            context.Logger.LogWarning(
+                                null,
+                                null,
+                                $"Animation frame {i} of tile {tile.Id} has invalid duration: {frame.Duration}ms. " +
+                                $"Duration must be greater than zero."
+                            );
+                        }
+
+                        if (frame.TileId < 0 || frame.TileId >= input.TileCount)
+                        {
+                            context.Logger.LogWarning(
+                                null,
+                                null,
+                                $"Animation frame {i} of tile {tile.Id} references invalid tile ID: {frame.TileId}. " +
+                                $"Valid range is 0-{input.TileCount - 1}."
+                            );
+                        }
+                    }
                 }
             }
         }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using MyFrameworkProject.Engine.Serialization;
 
 namespace MyFrameworkProject.Engine.Graphics
 {
@@ -77,6 +79,16 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
+        #region Fields - Animation
+
+        /// <summary>
+        /// Dictionary mapping tile IDs to their animation data for O(1) lookup.
+        /// Null if no animations are present in this tileset.
+        /// </summary>
+        protected Dictionary<int, TileAnimation> _animatedTiles;
+
+        #endregion
+
         #region Properties - Texture
 
         /// <summary>
@@ -134,6 +146,15 @@ namespace MyFrameworkProject.Engine.Graphics
 
         #endregion
 
+        #region Properties - Animation
+
+        /// <summary>
+        /// Gets whether this tileset contains any animated tiles.
+        /// </summary>
+        public bool HasAnimations => _animatedTiles != null && _animatedTiles.Count > 0;
+
+        #endregion
+
         #region Public Methods - Tile Calculations
 
         /// <summary>
@@ -168,5 +189,135 @@ namespace MyFrameworkProject.Engine.Graphics
         }
 
         #endregion
+
+        #region Public Methods - Animation
+
+        /// <summary>
+        /// Sets the animation data for the tileset from Tiled tileset data.
+        /// Creates an optimized lookup dictionary for animated tiles.
+        /// </summary>
+        /// <param name="tileData">The tile data containing animation information.</param>
+        public void SetAnimations(TiledTileData[] tileData)
+        {
+            if (tileData == null || tileData.Length == 0)
+            {
+                _animatedTiles = null;
+                return;
+            }
+
+            _animatedTiles = new Dictionary<int, TileAnimation>();
+
+            foreach (var tile in tileData)
+            {
+                if (tile.Animation != null && tile.Animation.Length > 0)
+                {
+                    _animatedTiles[tile.Id] = new TileAnimation(tile.Animation);
+                }
+            }
+
+            // Free memory if no animations were actually found
+            if (_animatedTiles.Count == 0)
+            {
+                _animatedTiles = null;
+            }
+        }
+
+        /// <summary>
+        /// Checks if a specific tile ID is animated.
+        /// </summary>
+        /// <param name="tileId">The local tile ID to check.</param>
+        /// <returns>True if the tile has animation data; otherwise, false.</returns>
+        public bool IsTileAnimated(int tileId)
+        {
+            return _animatedTiles != null && _animatedTiles.ContainsKey(tileId);
+        }
+
+        /// <summary>
+        /// Gets the current frame tile ID for an animated tile based on elapsed time.
+        /// </summary>
+        /// <param name="tileId">The local tile ID.</param>
+        /// <param name="elapsedTimeMs">The total elapsed time in milliseconds.</param>
+        /// <returns>The tile ID to render for the current frame, or the original tile ID if not animated.</returns>
+        public int GetAnimatedTileId(int tileId, double elapsedTimeMs)
+        {
+            if (_animatedTiles != null && _animatedTiles.TryGetValue(tileId, out var animation))
+            {
+                return animation.GetCurrentFrameTileId(elapsedTimeMs);
+            }
+
+            return tileId;
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Represents animation data for a single tile.
+    /// Manages frame sequences and timing for animated tiles.
+    /// Immutable after construction for thread safety and optimization.
+    /// </summary>
+    public class TileAnimation
+    {
+        private readonly TiledAnimationFrame[] _frames;
+        private readonly int _totalDuration;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TileAnimation"/> class.
+        /// </summary>
+        /// <param name="frames">The animation frames from Tiled data.</param>
+        /// <exception cref="ArgumentNullException">Thrown when frames is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when frames array is empty.</exception>
+        public TileAnimation(TiledAnimationFrame[] frames)
+        {
+            _frames = frames ?? throw new ArgumentNullException(nameof(frames));
+
+            if (_frames.Length == 0)
+            {
+                throw new ArgumentException("Animation must have at least one frame.", nameof(frames));
+            }
+
+            // Precalculate total duration for modulo operation
+            _totalDuration = 0;
+            foreach (var frame in _frames)
+            {
+                _totalDuration += frame.Duration;
+            }
+        }
+
+        /// <summary>
+        /// Gets the total duration of the animation loop in milliseconds.
+        /// </summary>
+        public int TotalDuration => _totalDuration;
+
+        /// <summary>
+        /// Gets the number of frames in the animation.
+        /// </summary>
+        public int FrameCount => _frames.Length;
+
+        /// <summary>
+        /// Gets the tile ID to display for the current frame based on elapsed time.
+        /// Uses modulo for seamless looping.
+        /// </summary>
+        /// <param name="elapsedTimeMs">The total elapsed time in milliseconds.</param>
+        /// <returns>The tile ID for the current frame.</returns>
+        public int GetCurrentFrameTileId(double elapsedTimeMs)
+        {
+            // Loop the animation using modulo
+            int currentTime = (int)(elapsedTimeMs % _totalDuration);
+            int accumulatedTime = 0;
+
+            // Find the current frame
+            for (int i = 0; i < _frames.Length; i++)
+            {
+                accumulatedTime += _frames[i].Duration;
+                if (currentTime < accumulatedTime)
+                {
+                    return _frames[i].TileId;
+                }
+            }
+
+            // Fallback to last frame (should not happen with correct logic)
+            return _frames[_frames.Length - 1].TileId;
+        }
     }
 }

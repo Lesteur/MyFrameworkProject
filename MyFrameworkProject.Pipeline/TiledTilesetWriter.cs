@@ -50,6 +50,34 @@ namespace MyFrameworkProject.Pipeline
             output.Write(value.Image ?? string.Empty);
             output.Write(value.ImageWidth);
             output.Write(value.ImageHeight);
+
+            // Write animated tile data
+            bool hasTiles = value.Tiles != null && value.Tiles.Length > 0;
+            output.Write(hasTiles);
+
+            if (hasTiles)
+            {
+                output.Write(value.Tiles.Length);
+                
+                foreach (var tile in value.Tiles)
+                {
+                    output.Write(tile.Id);
+
+                    bool hasAnimation = tile.Animation != null && tile.Animation.Length > 0;
+                    output.Write(hasAnimation);
+
+                    if (hasAnimation)
+                    {
+                        output.Write(tile.Animation.Length);
+
+                        foreach (var frame in tile.Animation)
+                        {
+                            output.Write(frame.Duration);
+                            output.Write(frame.TileId);
+                        }
+                    }
+                }
+            }
         }
     }
 }
