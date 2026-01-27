@@ -72,40 +72,19 @@ namespace MyFrameworkProject.Engine.Audio
         #region Properties - Volume
 
         /// <summary>
-        /// Gets or sets the master volume for all sound effects (0.0 to 1.0).
+        /// Gets the master volume for all sound effects (0.0 to 1.0).
         /// </summary>
-        public float MasterSoundVolume
-        {
-            get => _masterSoundVolume;
-            set => _masterSoundVolume = Math.Clamp(value, 0f, 1f);
-        }
+        public float MasterSoundVolume => _masterSoundVolume;
 
         /// <summary>
-        /// Gets or sets the master volume for background music (0.0 to 1.0).
-        /// Updates the current playing music volume immediately.
+        /// Gets the master volume for background music (0.0 to 1.0).
         /// </summary>
-        public float MasterMusicVolume
-        {
-            get => _masterMusicVolume;
-            set
-            {
-                _masterMusicVolume = Math.Clamp(value, 0f, 1f);
-                UpdateMusicVolume();
-            }
-        }
+        public float MasterMusicVolume => _masterMusicVolume;
 
         /// <summary>
-        /// Gets or sets whether all audio is muted.
+        /// Gets whether all audio is muted.
         /// </summary>
-        public bool IsMuted
-        {
-            get => _isMuted;
-            set
-            {
-                _isMuted = value;
-                UpdateMusicVolume();
-            }
-        }
+        public bool IsMuted => _isMuted;
 
         #endregion
 
@@ -114,17 +93,17 @@ namespace MyFrameworkProject.Engine.Audio
         /// <summary>
         /// Gets whether music is currently playing.
         /// </summary>
-        public bool IsMusicPlaying => MediaPlayer.State == MediaState.Playing;
+        public static bool IsMusicPlaying => MediaPlayer.State == MediaState.Playing;
 
         /// <summary>
         /// Gets whether music is currently paused.
         /// </summary>
-        public bool IsMusicPaused => MediaPlayer.State == MediaState.Paused;
+        public static bool IsMusicPaused => MediaPlayer.State == MediaState.Paused;
 
         /// <summary>
         /// Gets whether music is currently stopped.
         /// </summary>
-        public bool IsMusicStopped => MediaPlayer.State == MediaState.Stopped;
+        public static bool IsMusicStopped => MediaPlayer.State == MediaState.Stopped;
 
         /// <summary>
         /// Gets the name of the currently playing or loaded music track.
@@ -149,6 +128,40 @@ namespace MyFrameworkProject.Engine.Audio
 
         #endregion
 
+        #region Public Methods - Volume Control
+
+        /// <summary>
+        /// Sets the master volume for all sound effects (0.0 to 1.0).
+        /// </summary>
+        /// <param name="value">The volume value to set.</param>
+        public void SetMasterSoundVolume(float value)
+        {
+            _masterSoundVolume = Math.Clamp(value, 0f, 1f);
+        }
+
+        /// <summary>
+        /// Sets the master volume for background music (0.0 to 1.0).
+        /// Updates the current playing music volume immediately.
+        /// </summary>
+        /// <param name="value">The volume value to set.</param>
+        public void SetMasterMusicVolume(float value)
+        {
+            _masterMusicVolume = Math.Clamp(value, 0f, 1f);
+            UpdateMusicVolume();
+        }
+
+        /// <summary>
+        /// Sets whether all audio is muted.
+        /// </summary>
+        /// <param name="value">True to mute all audio, false to unmute.</param>
+        public void SetMuted(bool value)
+        {
+            _isMuted = value;
+            UpdateMusicVolume();
+        }
+
+        #endregion
+
         #region Public Methods - Sound Loading
 
         /// <summary>
@@ -161,13 +174,12 @@ namespace MyFrameworkProject.Engine.Audio
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Sound name cannot be null or empty.", nameof(name));
 
-            if (soundEffect == null)
-                throw new ArgumentNullException(nameof(soundEffect));
+            ArgumentNullException.ThrowIfNull(soundEffect);
 
-            if (_sounds.ContainsKey(name))
+            if (_sounds.TryGetValue(name, out Sound value))
             {
                 Core.Logger.Warning($"Sound '{name}' already loaded. Replacing existing sound.");
-                _sounds[name].Dispose();
+                value.Dispose();
             }
 
             _sounds[name] = new Sound(soundEffect);
@@ -244,11 +256,9 @@ namespace MyFrameworkProject.Engine.Audio
             }
 
             // Create a new instance for independent control
-            var instance = new Sound(sound.NativeSoundEffect)
-            {
-                IsLooped = true,
-                Volume = volume * _masterSoundVolume
-            };
+            var instance = new Sound(sound.NativeSoundEffect);
+            instance.SetLooped(true);
+            instance.SetVolume(volume * _masterSoundVolume);
 
             instance.Play();
             _activeSounds.Add(instance);

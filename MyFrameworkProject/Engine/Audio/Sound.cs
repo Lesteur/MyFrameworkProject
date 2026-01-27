@@ -38,58 +38,26 @@ namespace MyFrameworkProject.Engine.Audio
         #region Properties - Audio Settings
 
         /// <summary>
-        /// Gets or sets the volume of the sound (0.0 to 1.0).
+        /// Gets the volume of the sound (0.0 to 1.0).
         /// </summary>
-        public float Volume
-        {
-            get => _instance?.Volume ?? 0f;
-            set
-            {
-                if (_instance != null)
-                    _instance.Volume = Math.Clamp(value, 0f, 1f);
-            }
-        }
+        public float Volume => _instance?.Volume ?? 0f;
 
         /// <summary>
-        /// Gets or sets the pitch adjustment of the sound (-1.0 to 1.0).
+        /// Gets the pitch adjustment of the sound (-1.0 to 1.0).
         /// 0.0 is normal pitch, -1.0 is one octave down, 1.0 is one octave up.
         /// </summary>
-        public float Pitch
-        {
-            get => _instance?.Pitch ?? 0f;
-            set
-            {
-                if (_instance != null)
-                    _instance.Pitch = Math.Clamp(value, -1f, 1f);
-            }
-        }
+        public float Pitch => _instance?.Pitch ?? 0f;
 
         /// <summary>
-        /// Gets or sets the pan of the sound (-1.0 to 1.0).
+        /// Gets the pan of the sound (-1.0 to 1.0).
         /// -1.0 is full left, 0.0 is center, 1.0 is full right.
         /// </summary>
-        public float Pan
-        {
-            get => _instance?.Pan ?? 0f;
-            set
-            {
-                if (_instance != null)
-                    _instance.Pan = Math.Clamp(value, -1f, 1f);
-            }
-        }
+        public float Pan => _instance?.Pan ?? 0f;
 
         /// <summary>
-        /// Gets or sets whether the sound should loop when it reaches the end.
+        /// Gets whether the sound should loop when it reaches the end.
         /// </summary>
-        public bool IsLooped
-        {
-            get => _instance?.IsLooped ?? false;
-            set
-            {
-                if (_instance != null)
-                    _instance.IsLooped = value;
-            }
-        }
+        public bool IsLooped => _instance?.IsLooped ?? false;
 
         #endregion
 
@@ -136,6 +104,52 @@ namespace MyFrameworkProject.Engine.Audio
         {
             _soundEffect = soundEffect ?? throw new ArgumentNullException(nameof(soundEffect));
             _instance = _soundEffect.CreateInstance();
+        }
+
+        #endregion
+
+        #region Public Methods - Audio Control
+
+        /// <summary>
+        /// Sets the volume of the sound (0.0 to 1.0).
+        /// </summary>
+        /// <param name="value">The volume value to set.</param>
+        public void SetVolume(float value)
+        {
+            if (_instance != null)
+                _instance.Volume = Math.Clamp(value, 0f, 1f);
+        }
+
+        /// <summary>
+        /// Sets the pitch adjustment of the sound (-1.0 to 1.0).
+        /// 0.0 is normal pitch, -1.0 is one octave down, 1.0 is one octave up.
+        /// </summary>
+        /// <param name="value">The pitch value to set.</param>
+        public void SetPitch(float value)
+        {
+            if (_instance != null)
+                _instance.Pitch = Math.Clamp(value, -1f, 1f);
+        }
+
+        /// <summary>
+        /// Sets the pan of the sound (-1.0 to 1.0).
+        /// -1.0 is full left, 0.0 is center, 1.0 is full right.
+        /// </summary>
+        /// <param name="value">The pan value to set.</param>
+        public void SetPan(float value)
+        {
+            if (_instance != null)
+                _instance.Pan = Math.Clamp(value, -1f, 1f);
+        }
+
+        /// <summary>
+        /// Sets whether the sound should loop when it reaches the end.
+        /// </summary>
+        /// <param name="value">True to loop the sound, false otherwise.</param>
+        public void SetLooped(bool value)
+        {
+            if (_instance != null)
+                _instance.IsLooped = value;
         }
 
         #endregion
@@ -232,9 +246,9 @@ namespace MyFrameworkProject.Engine.Audio
         /// <param name="pan">The pan (-1.0 to 1.0).</param>
         public void SetParameters(float volume, float pitch, float pan)
         {
-            Volume = volume;
-            Pitch = pitch;
-            Pan = pan;
+            SetVolume(volume);
+            SetPitch(pitch);
+            SetPan(pan);
         }
 
         /// <summary>
@@ -243,10 +257,10 @@ namespace MyFrameworkProject.Engine.Audio
         /// </summary>
         public void ResetParameters()
         {
-            Volume = 1f;
-            Pitch = 0f;
-            Pan = 0f;
-            IsLooped = false;
+            SetVolume(1f);
+            SetPitch(0f);
+            SetPan(0f);
+            SetLooped(false);
         }
 
         #endregion
